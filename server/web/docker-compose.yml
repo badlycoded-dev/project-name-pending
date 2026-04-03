@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL}
+        REACT_APP_RTC_URL: ${REACT_APP_RTC_URL}
+        REACT_APP_EMAILJS_PUBLIC_KEY: ${REACT_APP_EMAILJS_PUBLIC_KEY}
+    container_name: web-frontend
+    ports:
+      - "80:80"     # redirects to HTTPS
+      - "443:443"   # HTTPS
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production

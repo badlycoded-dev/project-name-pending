@@ -1,0 +1,182 @@
+/* Главный контейнер формы */
+.teacher-form-container {
+  max-width: 600px; /* По макету форма довольно узкая */
+  margin: 0 auto;
+}
+
+/* Красная звездочка */
+.req-star {
+  color: #dc3545;
+  margin-left: 4px;
+}
+
+/* Контейнер списка навыков (Skills) */
+.skills-list-container {
+  border: 1px solid var(--input-border, #ced4da);
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 80px;
+  background-color: transparent;
+}
+
+/* Плашка отдельного навыка (Pill) */
+.skill-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--input-border, #6c757d);
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+  background-color: var(--card-bg, #fff);
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+.skill-pill:last-child {
+  margin-bottom: 0;
+}
+
+.skill-pill-data {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  flex: 1;
+}
+
+.skill-pill-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.skill-pill-actions button {
+  background: transparent;
+  border: 1px solid var(--input-border, #6c757d);
+  border-radius: 50px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text, #212529);
+  padding: 0;
+  transition: all 0.2s;
+}
+
+.skill-pill-actions button:hover {
+  background-color: var(--input-border, #dee2e6);
+}
+
+/* ==========================================
+   МОДАЛЬНОЕ ОКНО НАВЫКОВ
+   ========================================== */
+.skill-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.skill-modal-content {
+  background-color: var(--card-bg, #161b22);
+  border: 1px solid var(--input-border, #30363d);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.skill-modal-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--input-border, #30363d);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skill-modal-header h5 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.skill-modal-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Зона загрузки файлов */
+.file-upload-zone {
+  border: 1px solid var(--input-border, #6c757d);
+  border-radius: 50px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+  color: var(--muted, #adb5bd);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.file-upload-zone:hover {
+  background-color: rgba(13, 110, 253, 0.05);
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+/* Список прикрепленных файлов */
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--input-border, #495057);
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.file-item-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.file-item-actions button {
+  background: transparent;
+  border: none;
+  color: var(--muted, #adb5bd);
+  padding: 0 0.25rem;
+}
+
+.file-item-actions button:hover {
+  color: var(--text, #fff);
+}
+
+/* Поле для ввода ссылки (link) */
+.link-input-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.link-input-group input {
+  flex: 1;
+}

@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+
+  # ── WebRTC signaling server (Node.js) ──────────────────────────────────────
+  rtc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rtc-server
+    restart: unless-stopped
+    ports:
+      - "5050:5050"         # Signaling / REST API
+    environment:
+      PORT: 5050
+      JWT_SECRET: ${JWT_SECRET}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:4000,http://localhost:3000}
+      MONGO_URI: ${MONGO_URI:-}
+      # Point clients at the coturn container
+      STUN_URLS: stun:coturn:3478
+      TURN_URL: ${TURN_URL:-turn:coturn:3478}
+      TURN_USERNAME: ${TURN_USERNAME:-rtcuser}
+      TURN_CREDENTIAL: ${TURN_CREDENTIAL:-changeme}
+    depends_on:
+      - coturn
+    networks:
+      - rtc-net
+
+  # ── Coturn STUN / TURN server ──────────────────────────────────────────────
+  coturn:
+    image: coturn/coturn:latest
+    container_name: coturn
+    restart: unless-stopped
+    # coturn needs host network mode (or an extensive port range) for UDP relay.
+    # host mode is simplest and works on Linux. On macOS/Windows use the
+    # ports block below and set COTURN_EXTERNAL_IP in your .env instead.
+    network_mode: host
+    volumes:
+      - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+    # Uncomment below and remove network_mode: host for macOS / Windows Dev:
+    # ports:
+    #   - "3478:3478/tcp"
+    #   - "3478:3478/udp"
+    #   - "5349:5349/tcp"     # TLS TURN
+    #   - "5349:5349/udp"
+    #   - "49152-65535:49152-65535/udp"   # relay port range (heavy!)
+    # networks:
+    #   - rtc-net
+
+networks:
+  rtc-net:
+    driver: bridge

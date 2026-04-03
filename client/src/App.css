@@ -1,0 +1,546 @@
+/* ==========================================
+   🎨 1. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (ТЕМЫ)
+   ========================================== */
+
+:root {
+  /* ИДЕАЛЬНАЯ СВЕТЛАЯ ТЕМА (Apple / Stripe style) */
+  --bg: #f8fafc; /* Мягкий жемчужный фон */
+  --text: #1e293b; /* Графитовый текст */
+  --muted: #6b7280;
+  --card-bg: #ffffff;
+  --navbar-bg: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --border-color: #e2e8f0;
+  
+  /* Тени для светлой темы */
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+body.theme-dark {
+  /* ИДЕАЛЬНАЯ ТЕМНАЯ ТЕМА (GitHub / Discord style) */
+  --bg: #121212;
+  --text: #ffffff;
+  --muted: #9ca3af;
+  --card-bg: #1e1e1e;
+  --navbar-bg: #1e1e1e;
+  --input-bg: #2b2b2b;
+  --input-border: #444444;
+  --primary-color: #60a5fa;
+  --primary-hover: #3b82f6;
+  --border-color: #333333;
+  
+  /* Тени для темной темы */
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================
+   📝 2. БАЗОВЫЕ СТИЛИ
+   ========================================== */
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+.page-bg {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+h1, h2, h3, h4, h5, h6, p, span, label {
+  color: var(--text);
+}
+
+.text-muted { color: var(--muted) !important; }
+a { color: var(--primary-color); text-decoration: none; }
+
+/* ==========================================
+   📦 3. БЛОКИ И КОМПОНЕНТЫ (NAVBAR & CARDS)
+   ========================================== */
+
+/* Навигация */
+.navbar {
+  background-color: var(--navbar-bg) !important;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  transition: background-color 0.3s ease;
+}
+
+.navbar-brand, .nav-link {
+  color: var(--text) !important;
+  transition: color 0.2s ease-in-out;
+}
+
+.navbar-brand:hover, .nav-link:hover {
+  color: var(--primary-color) !important;
+}
+
+/* Карточки */
+.card {
+  background-color: var(--card-bg) !important;
+  color: var(--text);
+  border: 1px solid var(--border-color) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+}
+
+.card-footer {
+  background-color: var(--card-bg) !important;
+  border-top: 1px solid var(--border-color) !important;
+}
+
+/* ==========================================
+   🎛 4. ФОРМЫ, ИНПУТЫ И КНОПКИ
+   ========================================== */
+
+.form-control, .form-select, .input-group-text {
+  background-color: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  color: var(--text) !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.form-control::placeholder, ::-webkit-input-placeholder {
+  color: var(--muted) !important;
+  opacity: 1 !important;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+
+/* Кнопки */
+.btn {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover) !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.btn-outline-secondary {
+  background-color: var(--card-bg);
+  color: var(--text);
+  border-color: var(--input-border);
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--input-bg);
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+/* ==========================================
+   🌟 5. АНИМАЦИИ И ЭФФЕКТЫ (HOME PAGE)
+   ========================================== */
+
+.hero-section {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(0,0,0,0) 100%);
+  border-bottom: 1px solid var(--border-color);
+}
+
+body.theme-dark .hero-section {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(0,0,0,0) 100%);
+}
+
+.feature-card:hover, .course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+.course-card { overflow: hidden; }
+.course-img { transition: transform 0.5s ease; }
+.course-card:hover .course-img { transform: scale(1.05); }
+
+/* Дропдауны */
+.dropdown-menu { background-color: var(--card-bg); border-color: var(--border-color); }
+.dropdown-item { color: var(--text); }
+.dropdown-item:hover { background-color: var(--input-bg); color: var(--text); }
+.dropdown-divider { border-top-color: var(--border-color); }
+
+/* ==========================================
+   🌙 6. ЖЕСТКИЕ ФИКСЫ ДЛЯ ТЕМНОЙ ТЕМЫ (BOOTSTRAP)
+   ========================================== */
+
+body.theme-dark .bg-white, body.theme-dark .bg-light {
+  background-color: var(--card-bg) !important; color: var(--text) !important;
+}
+
+body.theme-dark .text-dark, body.theme-dark .text-body {
+  color: var(--text) !important;
+}
+
+body.theme-dark .btn-light, body.theme-dark .btn-white {
+  background-color: #2d2d2d !important;
+  color: var(--text) !important;
+  border: 1px solid #4b5563 !important;
+}
+
+body.theme-dark .btn-light:hover, body.theme-dark .btn-white:hover {
+  background-color: #374151 !important;
+}
+
+body.theme-dark .btn-outline-dark {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
+}
+
+body.theme-dark .btn-outline-dark:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: #ffffff !important;
+}
+
+body.theme-dark .btn-link {
+  color: #60a5fa !important;
+}
+
+body.theme-dark .btn-link:hover {
+  color: #93c5fd !important;
+}
+
+body.theme-dark .btn-primary {
+  background-color: #60a5fa !important;
+  border-color: #60a5fa !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .btn-primary:hover {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+body.theme-dark .navbar .dropdown-toggle.btn-outline-secondary {
+  color: var(--text) !important;
+  border-color: var(--input-border) !important;
+  background-color: transparent !important;
+}
+
+body.theme-dark .navbar .dropdown-toggle.btn-outline-secondary:hover,
+body.theme-dark .navbar .dropdown-toggle.btn-outline-secondary.show {
+  background-color: var(--input-bg) !important;
+}
+
+/* ==========================================
+   🎨 СТИЛИ ДЛЯ ТЕМНОЙ ТЕМЫ (ФОРМЫ, ИНПУТЫ, МОДАЛЫ)
+   ========================================== */
+
+/* FORM LABELS */
+body.theme-dark .form-label {
+  color: #ffffff !important;
+}
+
+body.theme-dark .form-label.small {
+  color: #ffffff !important;
+}
+
+body.theme-dark label {
+  color: #ffffff !important;
+}
+
+/* FORM CONTROLS */
+body.theme-dark .form-control,
+body.theme-dark .form-select {
+  background-color: #2b2b2b !important;
+  color: #ffffff !important;
+  border-color: #444444 !important;
+}
+
+body.theme-dark .form-control::placeholder {
+  color: #9ca3af !important;
+}
+
+body.theme-dark .form-control:focus,
+body.theme-dark .form-select:focus {
+  background-color: #2b2b2b !important;
+  color: #ffffff !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15) !important;
+}
+
+/* SELECT OPTIONS */
+body.theme-dark .form-select option {
+  background-color: #1e1e1e !important;
+  color: #ffffff !important;
+}
+
+/* МОДАЛЬНЫЕ ОКНА */
+body.theme-dark .modal-content {
+  background-color: #1e1e1e !important;
+  color: #ffffff !important;
+  border: 1px solid #444444 !important;
+}
+
+body.theme-dark .modal-header {
+  background-color: #1e1e1e !important;
+  border-bottom-color: #444444 !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .modal-title {
+  color: #ffffff !important;
+}
+
+body.theme-dark .modal-body {
+  background-color: #1e1e1e !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .modal-footer {
+  background-color: #1e1e1e !important;
+  border-top-color: #444444 !important;
+}
+
+body.theme-dark .btn-close {
+  filter: brightness(0) invert(1) !important;
+}
+
+/* КАРТОЧКИ И КОНТЕЙНЕРЫ */
+body.theme-dark .card {
+  background-color: #1e1e1e !important;
+  border-color: #444444 !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .card-header {
+  background-color: #2b2b2b !important;
+  border-bottom-color: #444444 !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .card-body,
+body.theme-dark .card-footer {
+  background-color: #1e1e1e !important;
+  color: #ffffff !important;
+}
+
+/* ТАБЛИЦЫ */
+body.theme-dark .table {
+  color: #ffffff !important;
+  border-color: #444444 !important;
+}
+
+body.theme-dark .table thead th {
+  background-color: #2b2b2b !important;
+  color: #ffffff !important;
+  border-color: #444444 !important;
+}
+
+body.theme-dark .table tbody tr {
+  border-color: #444444 !important;
+}
+
+body.theme-dark .table tbody tr:hover {
+  background-color: #2b2b2b !important;
+}
+
+/* ТЕКСТОВЫЕ ЭЛЕМЕНТЫ */
+body.theme-dark .form-text {
+  color: #9ca3af !important;
+}
+
+body.theme-dark .text-muted {
+  color: #9ca3af !important;
+}
+
+body.theme-dark .small {
+  color: #ffffff !important;
+}
+
+/* BADGE */
+body.theme-dark .badge {
+  color: #ffffff !important;
+}
+
+/* BREADCRUMB */
+body.theme-dark .breadcrumb {
+  background-color: transparent !important;
+}
+
+body.theme-dark .breadcrumb-item.active {
+  color: #ffffff !important;
+}
+
+body.theme-dark .breadcrumb-item a {
+  color: #60a5fa !important;
+}
+
+/* INOUT GROUP */
+body.theme-dark .input-group-text {
+  background-color: #2b2b2b !important;
+  color: #ffffff !important;
+  border-color: #444444 !important;
+}
+
+/* ДОПОЛНИТЕЛЬНЫЕ КНОПКИ */
+body.theme-dark .btn-secondary {
+  background-color: #6b7280 !important;
+  border-color: #6b7280 !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .btn-secondary:hover {
+  background-color: #8b9dc3 !important;
+  border-color: #8b9dc3 !important;
+}
+
+body.theme-dark .btn-outline-primary {
+  color: #60a5fa !important;
+  border-color: #60a5fa !important;
+}
+
+body.theme-dark .btn-outline-primary:hover {
+  background-color: #60a5fa !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .btn-outline-danger {
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
+}
+
+body.theme-dark .btn-outline-danger:hover {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .btn-warning {
+  background-color: #f59e0b !important;
+  border-color: #f59e0b !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .btn-warning:hover {
+  background-color: #d97706 !important;
+  border-color: #d97706 !important;
+}
+
+body.theme-dark .btn-success {
+  background-color: #10b981 !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .btn-success:hover {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+}
+
+body.theme-dark .btn-danger {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .btn-danger:hover {
+  background-color: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
+/* ИКОНКИ И ЭЛЕМЕНТЫ */
+body.theme-dark i.bi {
+  color: inherit !important;
+}
+
+body.theme-dark .bi-person,
+body.theme-dark .bi-gear,
+body.theme-dark .bi-question-circle {
+  color: #9ca3af !important;
+}
+
+body.theme-dark .opacity-75 {
+  opacity: 0.75 !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark .lead {
+  color: #ffffff !important;
+}
+
+/* DROPDOWN MENU */
+body.theme-dark .dropdown-menu {
+  background-color: #1e1e1e !important;
+  border-color: #444444 !important;
+}
+
+body.theme-dark .dropdown-menu .dropdown-item {
+  color: #ffffff !important;
+}
+
+body.theme-dark .dropdown-menu .dropdown-item:hover,
+body.theme-dark .dropdown-menu .dropdown-item:focus {
+  background-color: #2b2b2b !important;
+  color: #60a5fa !important;
+}
+
+body.theme-dark .dropdown-menu.dropdown-menu-dark {
+  background-color: #1e1e1e !important;
+  border-color: #444444 !important;
+}
+
+/* ==========================================
+   ✨ ДОПОЛНИТЕЛЬНЫЕ ДЕТАЛИ ДИЗАЙНА
+   ========================================== */
+
+/* 1. ТОЧЕЧНАЯ СЕТКА НА ФОНЕ (Dot Pattern) 
+   Убирает ощущение "пустой" страницы, добавляет текстуру инженерного стиля */
+body {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px; /* Размер сетки */
+}
+body.theme-dark {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+/* 2. МАТОВОЕ СТЕКЛО (Glassmorphism) ДЛЯ ВЕРХНЕГО МЕНЮ
+   Теперь меню будет полупрозрачным и будет красиво "размывать" контент под собой при скролле */
+.navbar {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px); /* Для поддержки Safari */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+body.theme-dark .navbar {
+  background-color: rgba(30, 30, 30, 0.85) !important;
+}
+
+/* 3. ЦВЕТНЫЕ АКЦЕНТЫ НА КАРТОЧКАХ КУРСОВ
+   Добавляем яркую цветную полоску сверху, чтобы карточки привлекали больше внимания */
+.course-card {
+  border-top: 4px solid var(--primary-color) !important;
+}
+body.theme-dark .course-card {
+  border-top: 4px solid var(--primary-color) !important;
+}
+
+/* 4. КРАСИВЫЙ СТИЛЬ ДЛЯ БЕЙДЖЕЙ (Ценники, уровни) */
+.badge {
+  padding: 0.5em 0.8em !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}

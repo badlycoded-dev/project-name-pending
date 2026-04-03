@@ -1,0 +1,49 @@
+const express  = require('express')
+const passport = require('passport')
+const router   = express.Router()
+
+const auth    = require('./auth')
+const users   = require('./users')
+const courses = require('./courses')
+const files   = require('./files')
+const forms   = require('./forms')
+const manage  = require('./manage')
+const utils   = require('./utils')
+const levels  = require('./levels')
+const directions  = require('./directions')
+const keys    = require('./keys')
+const promos  = require('./promos')
+const sessions    = require('./sessions')
+const groups      = require('./groups')
+const assignments = require('./assignments')
+const submissions = require('./submissions')
+
+const { validate } = require('../utils/utils')
+
+router.use('/auth',        auth)
+router.use('/files',       files)
+router.use('/forms',       forms)
+router.use('/manage',      passport.authenticate('jwt', { session: false }), validate('manage'), manage)
+router.use('/users',       passport.authenticate('jwt', { session: false }), users)
+router.use('/courses',     courses)
+router.use('/levels',      levels)
+router.use('/directions',  directions)
+router.use('/keys',        keys)
+router.use('/promos',      promos)
+router.use('/sessions',    sessions)
+router.use('/groups',      groups)
+router.use('/assignments', assignments)
+router.use('/submissions', submissions)
+router.use('/utils',       utils)
+
+router.get('/db/connect', validate('admin'), (_req, res) => {
+    global.appState.API.module.open()
+    res.status(200).json({ message: 'Creating connection' })
+})
+
+router.get('/db/drop', validate('admin'), (_req, res) => {
+    global.appState.API.module.close()
+    res.status(200).json({ message: 'Dropping connection' })
+})
+
+module.exports = router

@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./console
+      dockerfile: Dockerfile
+    container_name: console_app
+    restart: unless-stopped
+    env_file:
+      - .env.local
+      - ./console/.env
+    environment:
+      SERVER_HOST: ${SERVER_HOST:-localhost}
+      USE_HTTPS: ${USE_HTTPS:-false}
+      API_PORT_HTTP: 4040
+      API_PORT_HTTPS: 4043
+      WEB_PORT_HTTP: 4000
+      WEB_PORT_HTTPS: 4004
+      RTC_PORT_HTTP: 5050
+      RTC_PORT_HTTPS: 5051
+      DB_URL: mongodb+srv://mishanja:qwerty123@cluster0.oewbabf.mongodb.net/?appName=Cluster0
+      MONGODB_URI: mongodb+srv://mishanja:qwerty123@cluster0.oewbabf.mongodb.net/?appName=Cluster0
+      MONGO_URI: mongodb+srv://mishanja:qwerty123@cluster0.oewbabf.mongodb.net/?appName=Cluster0
+      DB_NAME: P_01
+      JWT_SECRET: Z3H@u8E#375Q[hKxAprDFGmERb05
+      SECRET: '#K!x1$iSzC%Cs5uk:n7b8wcvM6pZlg6T.Uif9QBCIz2p7o3V:S!aMXEsDYtEG@BG'
+      NODE_TLS_REJECT_UNAUTHORIZED: '0'
+      NODE_ENV: development
+    volumes:
+      - app_storage:/app/storage
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4040/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  nginx-api:
+    build:
+      context: ./console
+      dockerfile: Dockerfile.nginx
+    container_name: nginx-api
+    restart: unless-stopped
+    ports:
+      - "4040:80"
+      - "4043:443"
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+  rtc:
+    build:
+      context: ./rtc
+      dockerfile: Dockerfile
+    container_name: rtc-server
+    restart: unless-stopped
+    env_file:
+      - .env.local
+      - ./rtc/.env
+    environment:
+      SERVER_HOST: ${SERVER_HOST:-localhost}
+      USE_HTTPS: ${USE_HTTPS:-false}
+      API_PORT_HTTP: 4040
+      API_PORT_HTTPS: 4043
+      RTC_PORT_HTTP: 5050
+      RTC_PORT_HTTPS: 5051
+      WEB_PORT_HTTP: 4000
+      WEB_PORT_HTTPS: 4004
+      JWT_SECRET: Z3H@u8E#375Q[hKxAprDFGmERb05
+      MONGO_URI: mongodb+srv://mishanja:qwerty123@cluster0.oewbabf.mongodb.net/?appName=Cluster0
+      STUN_URLS: stun:coturn:3478
+      TURN_URL: turn:coturn:3478
+      TURN_USERNAME: rtcuser
+      TURN_CREDENTIAL: changeme
+      NODE_TLS_REJECT_UNAUTHORIZED: '0'
+      NODE_ENV: development
+    depends_on:
+      - coturn
+    networks:
+      - app-network
+      - rtc-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  nginx-rtc:
+    build:
+      context: ./rtc
+      dockerfile: Dockerfile.nginx
+    container_name: nginx-rtc
+    restart: unless-stopped
+    ports:
+      - "5050:80"
+      - "5051:443"
+    depends_on:
+      - rtc
+    networks:
+      - app-network
+      - rtc-net
+
+  coturn:
+    image: coturn/coturn:latest
+    container_name: coturn
+    restart: unless-stopped
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "5349:5349/tcp"
+      - "5349:5349/udp"
+    volumes:
+      - ./rtc/coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+    networks:
+      - rtc-net
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_EMAILJS_PUBLIC_KEY: Nvm4o7f3CGBjRYtZ5
+        REACT_APP_USE_HTTPS: ${USE_HTTPS:-false}
+        REACT_APP_API_URL: http://${SERVER_HOST:-localhost}:4040/api
+        REACT_APP_RTC_URL: http://${SERVER_HOST:-localhost}:5050
+        REACT_APP_API_URL_S: https://${SERVER_HOST:-localhost}:4043/api
+        REACT_APP_RTC_URL_S: https://${SERVER_HOST:-localhost}:5051
+    container_name: web-frontend
+    restart: unless-stopped
+    ports:
+      - "4000:80"
+      - "4004:443"
+    environment:
+      REACT_APP_USE_HTTPS: ${USE_HTTPS:-false}
+      REACT_APP_API_URL: http://${SERVER_HOST:-localhost}:4040/api
+      REACT_APP_RTC_URL: http://${SERVER_HOST:-localhost}:5050
+      REACT_APP_API_URL_S: https://${SERVER_HOST:-localhost}:4043/api
+      REACT_APP_RTC_URL_S: https://${SERVER_HOST:-localhost}:5051
+      REACT_APP_SERVER_HOST: ${SERVER_HOST:-localhost}
+      REACT_APP_EMAILJS_PUBLIC_KEY: Nvm4o7f3CGBjRYtZ5
+    networks:
+      - app-network
+    depends_on:
+      - api
+      - rtc
+
+volumes:
+  mongo_data:
+  app_storage:
+
+networks:
+  app-network:
+    driver: bridge
+  rtc-net:
+    driver: bridge

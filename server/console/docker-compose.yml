@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    container_name: console_app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4040}:4040"
+    env_file:
+      - .env
+    environment:
+      - MONGODB_URI=mongodb+srv://mishanja:qwerty123@cluster0.oewbabf.mongodb.net/?appName=Cluster0/${DB_NAME:-P_01}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - app_storage:/app/storage
+
+  mongo:
+    image: mongo:7
+    container_name: console_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  mongo_data:
+  app_storage:

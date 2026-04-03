@@ -1,0 +1,193 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# ROOT DOCKER COMPOSE — Full stack deployment entrypoint
+#
+# Usage:
+#   Local / VPN testing:
+#     SERVER_HOST=26.64.216.17 docker-compose up -d --build
+#
+#   Production (with domain + HTTPS):
+#     SERVER_HOST=your-domain.com USE_HTTPS=true docker-compose up -d --build
+#
+# Or put values in .env at this root level:
+#   SERVER_HOST=26.64.216.17
+#   USE_HTTPS=false
+#
+# Ports exposed (HTTP mode):
+#   http://<SERVER_HOST>:4000  — Admin / teacher web panel  (server/web)
+#   http://<SERVER_HOST>:3000  — Student client app         (client)
+#   http://<SERVER_HOST>:4040  — REST API
+#   http://<SERVER_HOST>:5050  — RTC signaling
+# ═══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── CONSOLE REST API ─────────────────────────────────────────────────────────
+  app:
+    build:
+      context: ./server/console
+      dockerfile: Dockerfile
+    container_name: console_app
+    restart: unless-stopped
+    env_file:
+      - ./server/.env
+    environment:
+      SERVER_HOST: ${SERVER_HOST:-localhost}
+      USE_HTTPS: ${USE_HTTPS:-false}
+      API_PORT_HTTP: ${API_PORT_HTTP:-4040}
+      API_PORT_HTTPS: ${API_PORT_HTTPS:-4043}
+      WEB_PORT_HTTP: ${WEB_PORT_HTTP:-4000}
+      WEB_PORT_HTTPS: ${WEB_PORT_HTTPS:-4004}
+      RTC_PORT_HTTP: ${RTC_PORT_HTTP:-5050}
+      RTC_PORT_HTTPS: ${RTC_PORT_HTTPS:-5051}
+      DB_URL: ${DB_URL}
+      MONGODB_URI: ${MONGODB_URI}
+      MONGO_URI: ${MONGO_URI}
+      DB_NAME: ${DB_NAME:-P_01}
+      JWT_SECRET: ${JWT_SECRET}
+      SECRET: ${SECRET}
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+    volumes:
+      - app_storage:/app/storage
+    networks:
+      - app-network
+
+  nginx-api:
+    build:
+      context: ./server/console
+      dockerfile: Dockerfile.nginx
+    container_name: nginx-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT_HTTP:-4040}:80"
+      - "${API_PORT_HTTPS:-4043}:443"
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+  # ── RTC SIGNALING SERVER ──────────────────────────────────────────────────────
+  rtc:
+    build:
+      context: ./server/rtc
+      dockerfile: Dockerfile
+    container_name: rtc-server
+    restart: unless-stopped
+    env_file:
+      - ./server/.env
+    environment:
+      SERVER_HOST: ${SERVER_HOST:-localhost}
+      USE_HTTPS: ${USE_HTTPS:-false}
+      API_PORT_HTTP: ${API_PORT_HTTP:-4040}
+      API_PORT_HTTPS: ${API_PORT_HTTPS:-4043}
+      RTC_PORT_HTTP: ${RTC_PORT_HTTP:-5050}
+      RTC_PORT_HTTPS: ${RTC_PORT_HTTPS:-5051}
+      WEB_PORT_HTTP: ${WEB_PORT_HTTP:-4000}
+      WEB_PORT_HTTPS: ${WEB_PORT_HTTPS:-4004}
+      JWT_SECRET: ${JWT_SECRET}
+      MONGO_URI: ${MONGO_URI}
+      STUN_URLS: ${STUN_URLS:-stun:coturn:3478}
+      TURN_URL: ${TURN_URL:-turn:coturn:3478}
+      TURN_USERNAME: ${TURN_USERNAME:-rtcuser}
+      TURN_CREDENTIAL: ${TURN_CREDENTIAL:-changeme}
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+    depends_on:
+      - coturn
+    networks:
+      - app-network
+      - rtc-net
+
+  nginx-rtc:
+    build:
+      context: ./server/rtc
+      dockerfile: Dockerfile.nginx
+    container_name: nginx-rtc
+    restart: unless-stopped
+    ports:
+      - "${RTC_PORT_HTTP:-5050}:80"
+      - "${RTC_PORT_HTTPS:-5051}:443"
+    depends_on:
+      - rtc
+    networks:
+      - app-network
+      - rtc-net
+
+  # ── COTURN STUN/TURN ──────────────────────────────────────────────────────────
+  coturn:
+    image: coturn/coturn:latest
+    container_name: coturn
+    restart: unless-stopped
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "5349:5349/tcp"
+      - "5349:5349/udp"
+    volumes:
+      - ./server/rtc/coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+    networks:
+      - rtc-net
+
+  # ── ADMIN / TEACHER WEB PANEL (server/web) ────────────────────────────────────
+  web:
+    build:
+      context: ./server/web
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_EMAILJS_PUBLIC_KEY: ${REACT_APP_EMAILJS_PUBLIC_KEY}
+        REACT_APP_USE_HTTPS: ${USE_HTTPS:-false}
+        REACT_APP_API_URL: http://${SERVER_HOST:-localhost}:${API_PORT_HTTP:-4040}/api
+        REACT_APP_RTC_URL: http://${SERVER_HOST:-localhost}:${RTC_PORT_HTTP:-5050}
+    container_name: web-frontend
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT_HTTP:-4000}:80"
+      - "${WEB_PORT_HTTPS:-4004}:443"
+    environment:
+      REACT_APP_USE_HTTPS: ${USE_HTTPS:-false}
+      REACT_APP_API_URL: http://${SERVER_HOST:-localhost}:${API_PORT_HTTP:-4040}/api
+      REACT_APP_RTC_URL: http://${SERVER_HOST:-localhost}:${RTC_PORT_HTTP:-5050}
+      REACT_APP_SERVER_HOST: ${SERVER_HOST:-localhost}
+      REACT_APP_EMAILJS_PUBLIC_KEY: ${REACT_APP_EMAILJS_PUBLIC_KEY}
+    networks:
+      - app-network
+    depends_on:
+      - app
+      - rtc
+
+  # ── STUDENT CLIENT APP (client/) ─────────────────────────────────────────────
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://${SERVER_HOST:-localhost}:${API_PORT_HTTP:-4040}/api
+        REACT_APP_RTC_URL: http://${SERVER_HOST:-localhost}:${RTC_PORT_HTTP:-5050}
+        REACT_APP_WEBRTC_URL: http://${SERVER_HOST:-localhost}:5001
+    container_name: react_client
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    networks:
+      - app-network
+    depends_on:
+      - app
+      - rtc
+
+  # ── WEBRTC TEST BACKEND (client/webrtc-test) ──────────────────────────────────
+  webrtc:
+    build:
+      context: ./client/webrtc-test/backend
+    container_name: webrtc-server
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    networks:
+      - app-network
+
+volumes:
+  app_storage:
+
+networks:
+  app-network:
+    driver: bridge
+  rtc-net:
+    driver: bridge

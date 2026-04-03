@@ -1,0 +1,16 @@
+# Root secrets
+.env
+
+# Azurite artifacts
+__azurite_db_table__.json
+AzuriteConfig
+
+# Build artifacts
+node_modules/
+build/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+*.zip
