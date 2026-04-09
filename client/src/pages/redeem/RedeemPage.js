@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import config from '../../config/config';
+
+const API_URL = config.API_URL;
+const BASE_URL = API_URL.replace('/api', '');
 
 function RedeemPage() {
   const { t } = useTranslation();
@@ -17,8 +21,7 @@ function RedeemPage() {
     setSuccessData(null);
 
     try {
-      // ВНИМАНИЕ: Убедись, что путь к API правильный (спроси у Миши полный роут)
-      const response = await fetch('http://localhost:5000/api/keys/redeem', {
+      const response = await fetch(`${API_URL}/keys/redeem`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -102,17 +105,24 @@ function RedeemPage() {
             {/* Список разблокированных курсов */}
             {successData.courses && successData.courses.length > 0 && (
               <div className="mt-3">
-                {successData.courses.map(course => (
+                {successData.courses.map(course => {
+                  let thumbnailSrc = 'https://placehold.co/100x60/21262d/e6edf3?text=No+Image';
+                  if (course.thumbnail) {
+                    thumbnailSrc = `${API_URL}/files/courses/${course._id}/${course.thumbnail}`;
+                  }
+                  return (
                   <div key={course._id} className="d-flex align-items-center gap-3 bg-white bg-opacity-50 p-2 rounded mb-2">
                     <img 
-                      src={course.thumbnail || 'https://placehold.co/100x60/21262d/e6edf3?text=No+Image'} 
+                      src={thumbnailSrc} 
                       alt="Thumbnail" 
                       className="rounded"
                       style={{ width: '60px', height: '40px', objectFit: 'cover' }}
+                      onError={(e) => { e.target.src = 'https://placehold.co/100x60/21262d/e6edf3?text=No+Image'; }}
                     />
                     <span className="fw-medium text-dark">{course.title}</span>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             

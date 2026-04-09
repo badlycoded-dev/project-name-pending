@@ -1434,7 +1434,7 @@ function AddEntityModal({ kind, initial, preType, uploadedFiles, initialTextCont
     return uploadedFiles.filter(f => {
       const n = (f.originalName || f.filename || '').toLowerCase();
       if (type === 'image') return /\.(jpg|jpeg|png|gif|webp)$/i.test(n);
-      if (type === 'video') return /\.(mp4|webm|ogg|mov|avi)$/i.test(n);
+      if (type === 'video') return /\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(n);
       if (type === 'audio') return /\.(mp3|wav|ogg|aac|flac|m4a)$/i.test(n);
       if (type === 'document') return /\.(pdf|doc|docx)$/i.test(n);
       if (type === 'archive') return /\.(zip|rar|7z)$/i.test(n);
@@ -1823,7 +1823,7 @@ function AddItemModal({ type, isEditing, initialData, onSave, onClose, uploadedF
     return uploadedFiles.filter(f => {
       const n = (f.originalName || f.filename || '').toLowerCase();
       if (type === 'image') return /\.(jpg|jpeg|png|gif|webp)$/i.test(n);
-      if (type === 'video') return /\.(mp4|webm|ogg|mov|avi)$/i.test(n);
+      if (type === 'video') return /\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(n);
       if (type === 'audio') return /\.(mp3|wav|ogg|aac|flac|m4a)$/i.test(n);
       if (type === 'document') return /\.(pdf|doc|docx)$/i.test(n);
       if (type === 'archive') return /\.(zip|rar|7z)$/i.test(n);
@@ -1958,7 +1958,7 @@ function FormEditorModal({ isEditing, initialItem, uploadedFiles = [], onSave, o
   const setPair = (qi, pi, s, v) => setQ(qi, q => ({ ...q, pairs: q.pairs.map((p, i) => i === pi ? { ...p, [s]: v } : p) }));
   const addPair = (qi) => setQ(qi, q => ({ ...q, pairs: [...q.pairs, { left: '', right: '' }] }));
   const removePair = (qi, pi) => setQ(qi, q => ({ ...q, pairs: q.pairs.filter((_, i) => i !== pi) }));
-  const getFF = (mt) => (uploadedFiles || []).filter(f => { const n = (f.originalName || f.filename || '').toLowerCase(); return mt === 'image' ? /\.(jpg|jpeg|png|gif|webp)$/i.test(n) : mt === 'video' ? /\.(mp4|webm|ogg|mov)$/i.test(n) : /\.(mp3|wav|ogg|aac|flac|m4a)$/i.test(n); });
+  const getFF = (mt) => (uploadedFiles || []).filter(f => { const n = (f.originalName || f.filename || '').toLowerCase(); return mt === 'image' ? /\.(jpg|jpeg|png|gif|webp)$/i.test(n) : mt === 'video' ? /\.(mp4|webm|ogg|mov|mkv)$/i.test(n) : /\.(mp3|wav|ogg|aac|flac|m4a)$/i.test(n); });
   const handleSave = () => { if (!title.trim()) { _showInfo('Validation', 'Enter form title'); return; } if (questions.find(q => !q.question.trim())) { _showInfo('Validation', 'All questions need text'); return; } onSave({ type: 'form', title, formData: { questions } }); };
   const QL = { single: 'Single Answer (Radio)', multiple: 'Multiple Answers (Checkboxes)', correlation: 'Correlation (Match)', closed: 'Closed Answer (Text)', open: 'Open Answer (Teacher reviews)' };
 

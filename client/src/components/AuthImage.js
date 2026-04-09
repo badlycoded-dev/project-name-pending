@@ -21,7 +21,7 @@ function AuthImage({ src, alt, className, style, fallback }) {
                     return;
                 }
 
-                // ИСПРАВЛЕНИЕ: Правильный формат токена для твоего проекта
+                // Правильный формат токена для заголовка Authorization
                 const headers = {
                     'Authorization': `Bearer ${token}`
                 };

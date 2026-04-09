@@ -1,9 +1,11 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { setUser } from '../../utils/auth';
-
-const API_URL = process.env.REACT_APP_API_URL || '${API_URL}';
 import { SettingsContext } from '../../contexts/SettingsContext';
+import config from '../../config/config';
+import { UtilityModal } from '../../components/UtilityModal';
+
+const API_URL = config.API_URL;
 
 function SignUpPage() {
   const navigate = useNavigate();
@@ -12,11 +14,12 @@ function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [modal, setModal] = useState({ show: false, title: '', message: '', onClose: null });
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert(t('auth.passwordsNotMatch'));
+      setModal({ show: true, title: 'Error', message: t('auth.passwordsNotMatch'), onClose: null });
       return;
     }
 
@@ -76,12 +79,11 @@ function SignUpPage() {
       // 4. Сохраняем настоящего юзера и НАСТОЯЩИЙ токен
       setUser(userData, token);
       
-      alert(t('auth.regSuccess'));
-      navigate('/search');
+      setModal({ show: true, title: '✓ Success', message: t('auth.regSuccess'), onClose: () => navigate('/search') });
 
     } catch (error) {
       console.error('Registration error:', error);
-      alert(`${t('auth.regError')} ${error.message}`);
+      setModal({ show: true, title: 'Error', message: `${t('auth.regError')} ${error.message}`, onClose: null });
     }
   };
 
@@ -200,6 +202,13 @@ function SignUpPage() {
           </div>
         </div>
       </div>
+      <UtilityModal
+        show={modal.show}
+        type="info"
+        title={modal.title}
+        message={modal.message}
+        onClose={() => { setModal({ show: false, title: '', message: '', onClose: null }); modal.onClose?.(); }}
+      />
     </div>
   );
 }

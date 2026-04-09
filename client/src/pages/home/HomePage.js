@@ -1,10 +1,12 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SettingsContext } from '../../contexts/SettingsContext';
-
-const BASE_URL = (process.env.REACT_APP_API_URL || '${BASE_URL}/api').replace('/api', '');
 import { useCart } from '../../contexts/CartContext';
 import { courseService } from '../../api/courseService';
+import config from '../../config/config';
+
+const API_URL = config.API_URL;
+const BASE_URL = (process.env.REACT_APP_API_URL || '${BASE_URL}/api').replace('/api', '');
 
 function HomePage() {
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ function HomePage() {
         const data = await courseService.getAll();
         
         const latest = data.slice(0, 4).map(c => {
-          let imgSrc = 'https://placehold.co/400x250/21262d/e6edf3?text=No+Image';
+          let imgSrc = 'https://placehold.co/400x250?text=No+Img';
           if (c.links && c.links.length > 0) {
             const imageLink = c.links.find(l => l.type === 'image') || c.links[0];
             if (imageLink && imageLink.url) {

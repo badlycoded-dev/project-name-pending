@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { getUser } from '../../utils/auth';
+import config from '../../config/config';
+import { UtilityModal } from '../../components/UtilityModal';
 
-// Убедись, что порт бэкенда совпадает с твоим
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4040/api';
+const API_URL = config.API_URL;
 
 function CreatorKeysPage() {
   const { theme, t } = useContext(SettingsContext);
@@ -13,6 +14,8 @@ function CreatorKeysPage() {
   const [myCourses, setMyCourses] = useState([]); // Стейт для реальных курсов
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [infoModal, setInfoModal] = useState({ show: false, title: '', message: '' });
   
   // Состояния для формы генерации
   const [newKeyData, setNewKeyData] = useState({
@@ -110,17 +113,22 @@ function CreatorKeysPage() {
         fetchKeys(); // Обновляем таблицу
       } else {
         const errorData = await response.json();
-        alert(`${t('common.generationError')}: ${errorData.message}`);
+        setInfoModal({ show: true, title: 'Error', message: `${t('common.generationError')}: ${errorData.message}` });
       }
     } catch (error) {
       console.error('Ошибка сервера:', error);
-      alert(t('common.connectionError'));
+      setInfoModal({ show: true, title: 'Error', message: t('common.connectionError') || 'Connection error.' });
     }
   };
 
   // 4. Удаление ключа
-  const handleDeleteKey = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this key?')) return;
+  const handleDeleteKey = (id) => {
+    setDeleteTarget(id);
+  };
+
+  const confirmDeleteKey = async () => {
+    const id = deleteTarget;
+    setDeleteTarget(null);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/keys/${id}`, {
@@ -131,7 +139,7 @@ function CreatorKeysPage() {
         setKeysData(keysData.filter(k => k._id !== id));
       } else {
         const err = await response.json();
-        alert(`${t('common.deleteError')}: ${err.message}`);
+        setInfoModal({ show: true, title: 'Error', message: `${t('common.deleteError')}: ${err.message}` });
       }
     } catch (error) {
       console.error('Error:', error);
@@ -246,7 +254,7 @@ function CreatorKeysPage() {
                         <option value="" disabled>Choose a course to unlock...</option>
                         {/* МАПИМ РЕАЛЬНЫЕ КУРСЫ ИЗ БАЗЫ */}
                         {myCourses.map(c => (
-                          <option key={c._id || c.id} value={c._id || c.id}>{c.title}</option>
+                          <option key={c._id || c.id} value={c._id || c.id}>{c.trans[0].title}</option>
                         ))}
                       </select>
                       {myCourses.length === 0 && (
@@ -308,6 +316,24 @@ function CreatorKeysPage() {
           <div className="modal-backdrop show" style={{ zIndex: 1050 }}></div>
         </>
       )}
+      <UtilityModal
+        show={!!deleteTarget}
+        type="confirm"
+        danger
+        title="Delete key?"
+        message="This key will be permanently deleted and can no longer be redeemed."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={confirmDeleteKey}
+        onCancel={() => setDeleteTarget(null)}
+      />
+      <UtilityModal
+        show={infoModal.show}
+        type="info"
+        title={infoModal.title}
+        message={infoModal.message}
+        onClose={() => setInfoModal({ show: false, title: '', message: '' })}
+      />
     </div>
   );
 }

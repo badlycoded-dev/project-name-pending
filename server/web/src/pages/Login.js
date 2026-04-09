@@ -9,6 +9,7 @@ export default function Login({ onLogin }) {
   const [form, setForm]     = useState({ login: '', password: '', memo: false });
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const v = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -101,9 +102,18 @@ export default function Login({ onLogin }) {
               <span className="input-group-text" style={{ background: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--text-muted)' }}>
                 <i className="bi bi-lock" />
               </span>
-              <input type="password" className="form-control" name="password"
+              <input type={showPassword ? 'text' : 'password'} className="form-control" name="password"
                 value={form.password} onChange={handleChange}
                 placeholder="••••••••" autoComplete="current-password" />
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={() => setShowPassword(v => !v)}
+                tabIndex={-1}
+                style={{ borderColor: 'var(--input-border)', color: 'var(--text-muted)', background: 'var(--input-bg)' }}
+              >
+                <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`} />
+              </button>
             </div>
           </div>
 

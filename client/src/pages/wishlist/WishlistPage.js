@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import { useWishlist } from '../../contexts/WishlistContext';
+import config from '../../config/config';
 
-// ДОБАВЛЯЕМ ПРАВИЛЬНЫЙ БАЗОВЫЙ URL
+const API_URL = config.API_URL;
 const BASE_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:4040';
 
 function WishlistPage() {
@@ -50,7 +51,7 @@ function WishlistPage() {
                     {/* Картинка курса */}
                     <div className="position-relative">
                       <img 
-                        src={displayImg || 'https://placehold.co/400x250/21262d/e6edf3?text=No+Image'} 
+                        src={displayImg || 'https://placehold.co/400x250?text=No+Img'} 
                         className="card-img-top" 
                         alt={course.title} 
                         style={{ height: '180px', objectFit: 'cover' }}

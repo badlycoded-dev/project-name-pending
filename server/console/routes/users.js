@@ -1,7 +1,7 @@
 const router     = require('express').Router()
 const passport   = require('passport')
 const controller = require('../controllers/users')
-const { validate } = require('../utils/utils')
+const { validate, validateDynamic } = require('../utils/utils')
 
 const auth = passport.authenticate('jwt', { session: false })
 
@@ -11,13 +11,13 @@ router.patch('/me/courses/:courseId/progress',  auth, controller.updateCoursePro
 
 router.get('/',      controller.getAll)
 router.get('/:id',   controller.getById)
-router.post('/',     auth, validate('admin'), controller.create)
-router.patch('/:id', auth, validate('admin'), controller.update)
-router.delete('/:id',auth, validate('admin'), controller.remove)
+router.post('/',     auth, validateDynamic('admin'), controller.create)
+router.patch('/:id', auth, validateDynamic('admin'), controller.update)
+router.delete('/:id',auth, validateDynamic('admin'), controller.remove)
 
 router.get('/:id/profile-picture/:filename', controller.getProfilePicture)
-router.post('/:id/profile-picture',   auth, validate('manage'), controller.uploadProfilePicture)
-router.put('/:id/profile-picture',    auth, validate('manage'), controller.updateProfilePicture)
-router.delete('/:id/profile-picture', auth, validate('manage'), controller.deleteProfilePicture)
+router.post('/:id/profile-picture',   auth, validateDynamic('manage'), controller.uploadProfilePicture)
+router.put('/:id/profile-picture',    auth, validateDynamic('manage'), controller.updateProfilePicture)
+router.delete('/:id/profile-picture', auth, validateDynamic('manage'), controller.deleteProfilePicture)
 
 module.exports = router

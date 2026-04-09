@@ -89,7 +89,12 @@ function Sessions({ data, onLogout }) {
         setPruning(false);
     };
 
-    const handleArchive = (sess) => showConfirm("Archive Session", `Archive "${courseTitle(sess.courseId)}"?`, async () => {
+    const handleArchive = (sess) => showConfirm("Archive Session", `Archive "${courseTitle(sess.courseId)}"? The session will be hidden but not deleted.`, async () => {
+        const res = await fetch(`${API}/sessions/${sess._id}/archive`, { method:"PATCH", headers: ah });
+        if (res.ok) fetchAll(); else { const d = await res.json(); showInfo("Error", d.message); }
+    }, true);
+
+    const handleDelete = (sess) => showConfirm("Delete Session", `Permanently delete "${courseTitle(sess.courseId)}"? This removes all groups and assignments and cannot be undone.`, async () => {
         const res = await fetch(`${API}/sessions/${sess._id}`, { method:"DELETE", headers: ah });
         if (res.ok) fetchAll(); else { const d = await res.json(); showInfo("Error", d.message); }
     }, true);
@@ -158,7 +163,7 @@ function Sessions({ data, onLogout }) {
                                 <div>
                                     <label className="ep-label">Statuses</label>
                                     <div style={{ display:'flex', gap:'1rem' }}>
-                                        {['archived','completed'].map(s=>(
+                                        {['draft','active','completed','archived'].map(s=>(
                                             <label key={s} style={{ display:'flex', alignItems:'center', gap:'.4rem', fontSize:'.78rem', color:'var(--text-2)', cursor:'pointer' }}>
                                                 <input type="checkbox" checked={pruneOpts.statuses.includes(s)} onChange={e=>setPruneOpts(p=>({...p,statuses:e.target.checked?[...p.statuses,s]:p.statuses.filter(x=>x!==s)}))} />
                                                 {s}
@@ -195,7 +200,6 @@ function Sessions({ data, onLogout }) {
                                         <select className="ep-select" value={form.courseType} onChange={e=>setForm(p=>({...p,courseType:e.target.value}))}>
                                             <option value="HOSTED">HOSTED — no purchase required</option>
                                             <option value="MENTORED">MENTORED — must own course</option>
-                                            <option value="SELF_TAUGHT">SELF_TAUGHT — no session features</option>
                                         </select>
                                     </div>
                                     <div className="ep-form-group d-flex align-items-center gap-2" style={{ paddingTop:'1.4rem' }}>
@@ -279,9 +283,14 @@ function Sessions({ data, onLogout }) {
                                         <button className="ep-btn ep-btn-sm ep-btn-primary" style={{ flex:1 }} onClick={()=>navigate(`/manage/session/${sess._id}`)}>
                                             <i className="bi bi-arrow-right-circle" /> View
                                         </button>
-                                        {isHost && sess.status!=='archived' && (
+                                        {(isHost || canManage) && sess.status!=='archived' && (
                                             <button className="ep-btn ep-btn-sm ep-btn-danger-ghost" onClick={()=>handleArchive(sess)} title="Archive">
                                                 <i className="bi bi-archive" />
+                                            </button>
+                                        )}
+                                        {canManage && sess.status==='archived' && (
+                                            <button className="ep-btn ep-btn-sm ep-btn-danger" onClick={()=>handleDelete(sess)} title="Delete permanently">
+                                                <i className="bi bi-trash3" />
                                             </button>
                                         )}
                                     </div>

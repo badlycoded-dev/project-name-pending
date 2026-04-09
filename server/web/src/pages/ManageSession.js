@@ -213,6 +213,118 @@ function ScheduleCalendar({ schedule = [], onRemove, canEdit, onEventClick, onCo
 
 
 
+// ── Per-meeting chat panel ────────────────────────────────────────────────────
+function MeetingChatPanel({ schedule, meetingChats, getOrCreateMeetingChat, ah, myId }) {
+    const [selectedKey, setSelectedKey] = useState(null);
+    const [messages, setMessages]       = useState([]);
+    const [text, setText]               = useState('');
+    const [loading, setLoading]         = useState(false);
+    const [sending, setSending]         = useState(false);
+    const [chatId, setChatId]           = useState(null);
+    const API = toHttps(process.env.REACT_APP_API_URL || 'https://localhost:4040/api');
+
+    const meetingChatKey = (e) => e.isRecurring
+        ? `rec:${e.title}:${e.recurrence?.frequency||'weekly'}`
+        : `once:${e.title}:${e.datetime}`;
+
+    const uniqueEntries = schedule.reduce((acc, e) => {
+        const k = meetingChatKey(e);
+        if (!acc.find(x => meetingChatKey(x) === k)) acc.push(e);
+        return acc;
+    }, []);
+
+    const loadChat = async (entry) => {
+        const key = meetingChatKey(entry);
+        setSelectedKey(key);
+        setLoading(true);
+        const cid = await getOrCreateMeetingChat(entry);
+        setChatId(cid);
+        if (cid) {
+            const r = await fetch(`${API}/chats/${cid}/messages?limit=100`, { headers: ah });
+            if (r.ok) { const d = await r.json(); setMessages(d.data || []); }
+        }
+        setLoading(false);
+    };
+
+    const send = async (e) => {
+        e.preventDefault();
+        if (!text.trim() || !chatId || sending) return;
+        setSending(true);
+        await fetch(`${API}/chats/${chatId}/messages`, { method: 'POST', headers: ah, body: JSON.stringify({ text: text.trim() }) });
+        setText('');
+        const r = await fetch(`${API}/chats/${chatId}/messages?limit=100`, { headers: ah });
+        if (r.ok) { const d = await r.json(); setMessages(d.data || []); }
+        setSending(false);
+    };
+
+    return (
+        <div className="card border-0 shadow-sm mt-3">
+            <div className="card-header bg-white fw-semibold d-flex align-items-center gap-2">
+                <i className="bi bi-chat-left-text text-info" />Meeting Chats
+                <small className="text-muted fw-normal ms-1">— one chat per meeting (recurring meetings share a single chat)</small>
+            </div>
+            <div className="card-body p-0 d-flex" style={{ minHeight: 320, maxHeight: 420 }}>
+                {/* Sidebar: meeting list */}
+                <div style={{ width: 220, flexShrink: 0, borderRight: '1px solid var(--bs-border-color,#dee2e6)', overflowY: 'auto' }}>
+                    {uniqueEntries.map(entry => {
+                        const key = meetingChatKey(entry);
+                        const isActive = selectedKey === key;
+                        const hasChatId = !!meetingChats[key];
+                        return (
+                            <button key={key} onClick={() => loadChat(entry)}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '.6rem .9rem', border: 'none', borderBottom: '1px solid var(--bs-border-color,#dee2e6)', background: isActive ? 'var(--bs-primary-bg-subtle,#e7f5ff)' : 'transparent', cursor: 'pointer', transition: 'background .12s' }}>
+                                <div style={{ fontWeight: 600, fontSize: '.8rem', color: isActive ? 'var(--bs-primary,#1971c2)' : 'var(--bs-body-color)', marginBottom: 2 }}>{entry.title}</div>
+                                <div style={{ fontSize: '.72rem', color: '#868e96' }}>
+                                    {entry.isRecurring ? <><i className="bi bi-arrow-repeat me-1" />{entry.recurrence?.frequency||'recurring'}</> : new Date(entry.datetime).toLocaleDateString([], { month:'short', day:'numeric' })}
+                                </div>
+                                {hasChatId && <div style={{ fontSize: '.65rem', color: '#2f9e44', marginTop: 2 }}><i className="bi bi-chat-dots me-1" />Chat loaded</div>}
+                            </button>
+                        );
+                    })}
+                </div>
+                {/* Chat area */}
+                {selectedKey ? (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                        {loading ? (
+                            <div className="d-flex align-items-center justify-content-center flex-grow-1 text-muted">
+                                <span className="spinner-border spinner-border-sm me-2" />Loading chat…
+                            </div>
+                        ) : (
+                            <>
+                                <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                    {messages.length === 0 && <div className="text-center text-muted py-4" style={{ fontSize: '.83rem' }}>No messages yet in this meeting chat.</div>}
+                                    {messages.map(msg => {
+                                        const isMine = (msg.sender?._id || msg.sender) === myId;
+                                        return (
+                                            <div key={msg._id} style={{ display: 'flex', flexDirection: isMine ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: 6 }}>
+                                                <div style={{ maxWidth: '70%' }}>
+                                                    {!isMine && <div style={{ fontSize: '.68rem', color: '#868e96', marginBottom: 2, marginLeft: 4 }}>{msg.sender?.nickname || 'Unknown'}</div>}
+                                                    <div style={{ background: isMine ? '#1971c2' : '#f1f3f5', color: isMine ? '#fff' : '#1a1b2e', borderRadius: isMine ? '12px 12px 3px 12px' : '12px 12px 12px 3px', padding: '6px 11px', fontSize: '.83rem', wordBreak: 'break-word' }}>{msg.text}</div>
+                                                    <div style={{ fontSize: '.65rem', color: '#adb5bd', marginTop: 1, textAlign: isMine ? 'right' : 'left', padding: '0 4px' }}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <form onSubmit={send} style={{ padding: '8px 12px', borderTop: '1px solid var(--bs-border-color,#dee2e6)', display: 'flex', gap: 8 }}>
+                                    <input className="form-control form-control-sm" placeholder="Type a message…" value={text} onChange={e => setText(e.target.value)} />
+                                    <button type="submit" className="btn btn-primary btn-sm" disabled={sending || !text.trim()}>
+                                        {sending ? <span className="spinner-border spinner-border-sm" /> : <i className="bi bi-send-fill" />}
+                                    </button>
+                                </form>
+                            </>
+                        )}
+                    </div>
+                ) : (
+                    <div className="d-flex align-items-center justify-content-center flex-grow-1 text-muted" style={{ fontSize: '.85rem' }}>
+                        <span>Select a meeting from the list to open its chat</span>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 function ManageSession({ data, onLogout, startMeeting }) {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -294,6 +406,25 @@ function ManageSession({ data, onLogout, startMeeting }) {
     // ── Private copy state ──────────────────────────────────────────────────
     const [creatingCopy, setCreatingCopy] = useState(false);
 
+    // ── Global session chat state ────────────────────────────────────────────
+    const [globalChatMessages, setGlobalChatMessages] = useState([]);
+    const [globalChatText,     setGlobalChatText]     = useState('');
+    const [globalChatLoading,  setGlobalChatLoading]  = useState(false);
+    const [globalChatSending,  setGlobalChatSending]  = useState(false);
+    const [globalChatId,       setGlobalChatId]       = useState(null);
+    const globalChatPollRef = useRef(null);
+
+    // ── Per-meeting chat state ────────────────────────────────────────────────
+    const [meetingChats, setMeetingChats] = useState({});
+
+    // ── Settings state ────────────────────────────────────────────────────────
+    const [settingsForm, setSettingsForm]   = useState({ courseType: '', status: '' });
+    const [settingsSaving, setSettingsSaving] = useState(false);
+
+    // ── Host reassign state ───────────────────────────────────────────────────
+    const [hostSearch, setHostSearch]   = useState('');
+    const [hostResults, setHostResults] = useState([]);
+
     // ── Fetch ───────────────────────────────────────────────────────────────
     const fetchSession = useCallback(async () => {
         try {
@@ -352,8 +483,10 @@ function ManageSession({ data, onLogout, startMeeting }) {
     const courseTitle = (c) => c?.trans?.[0]?.title || c?.title || "(untitled)";
     const isHost = session && String(session.hostTutor?._id || session.hostTutor) === String(data._id);
     const myCoEntry = session?.coTutors?.find(ct => String(ct.userId?._id || ct.userId) === String(data._id));
-    const canEditSession = isHost || (myCoEntry?.canSchedule);
-    const canGrade       = isHost || (myCoEntry?.canGrade);
+    const isPrivileged   = ['manage','admin','root','quality'].includes(data.accessLevel);
+    const canEditSession = isHost || (myCoEntry?.canSchedule) || isPrivileged;
+    const canGrade       = isHost || (myCoEntry?.canGrade) || isPrivileged;
+    const canSettings    = (isHost || isPrivileged);  // co-tutors excluded
 
     const overdueDeduction = (scale) => ['12','100'].includes(scale) ? 2 : 1;
 
@@ -604,30 +737,173 @@ function ManageSession({ data, onLogout, startMeeting }) {
         return () => clearTimeout(t);
     }, [coTutorSearch]);
 
+    // Normalize coTutors: strip populated objects down to plain ID strings before patching
+    const normalizeCoTutors = (arr) =>
+        arr.map(({ userId, canGrade, canSchedule, canEditCopy }) => ({
+            userId: String(userId?._id || userId),
+            canGrade: !!canGrade,
+            canSchedule: !!canSchedule,
+            canEditCopy: !!canEditCopy,
+        }));
+
     const addCoTutor = async (userId) => {
         const existing = session.coTutors || [];
-        if (existing.some(ct => String(ct.userId?._id || ct.userId) === userId)) { showInfo("Info", "Already a co-tutor"); return; }
-        const newCoTutors = [...existing, { userId, canGrade: true, canSchedule: true, canEditCopy: false }];
+        if (existing.some(ct => String(ct.userId?._id || ct.userId) === String(userId))) {
+            showInfo("Info", "Already a co-tutor"); return;
+        }
+        const newCoTutors = normalizeCoTutors([
+            ...existing,
+            { userId, canGrade: true, canSchedule: true, canEditCopy: false },
+        ]);
         const res = await fetch(`${API}/sessions/${id}`, { method: "PATCH", headers: ah, body: JSON.stringify({ coTutors: newCoTutors }) });
         if (res.ok) { fetchSession(); setCoTutorResults([]); setCoTutorSearch(""); }
+        else { const d = await res.json(); showInfo("Error", d.message); }
     };
 
     const removeCoTutor = (userId) => {
         showConfirm("Remove Co-tutor", "Remove this co-tutor from the session?", async () => {
-            const newCoTutors = session.coTutors.filter(ct => String(ct.userId?._id || ct.userId) !== String(userId));
+            const newCoTutors = normalizeCoTutors(
+                session.coTutors.filter(ct => String(ct.userId?._id || ct.userId) !== String(userId))
+            );
             const res = await fetch(`${API}/sessions/${id}`, { method: "PATCH", headers: ah, body: JSON.stringify({ coTutors: newCoTutors }) });
             if (res.ok) fetchSession();
+            else { const d = await res.json(); showInfo("Error", d.message); }
         }, true);
     };
 
     const toggleCoTutorPerm = async (userId, perm) => {
-        const newCoTutors = session.coTutors.map(ct => {
-            const ctId = String(ct.userId?._id || ct.userId);
-            if (ctId === String(userId)) return { ...ct, [perm]: !ct[perm] };
-            return ct;
-        });
+        const newCoTutors = normalizeCoTutors(
+            session.coTutors.map(ct => {
+                const ctId = String(ct.userId?._id || ct.userId);
+                return ctId === String(userId) ? { ...ct, [perm]: !ct[perm] } : ct;
+            })
+        );
         const res = await fetch(`${API}/sessions/${id}`, { method: "PATCH", headers: ah, body: JSON.stringify({ coTutors: newCoTutors }) });
         if (res.ok) fetchSession();
+        else { const d = await res.json(); showInfo("Error", d.message); }
+    };
+
+    // ── Global session chat ──────────────────────────────────────────────────
+    const pollGlobalChat = async (cid) => {
+        if (!cid) return;
+        try {
+            const r = await fetch(`${API}/chats/${cid}/messages?limit=100`, { headers: ah });
+            if (r.ok) { const d = await r.json(); setGlobalChatMessages(d.data || []); }
+        } catch {}
+    };
+
+    const fetchOrCreateGlobalChat = useCallback(async () => {
+        setGlobalChatLoading(true);
+        try {
+            const listRes = await fetch(`${API}/chats`, { headers: ah });
+            if (listRes.ok) {
+                const { data: chats } = await listRes.json();
+                const tag = `session:${id}`;
+                const existing = (chats || []).find(c => c.name === tag);
+                if (existing) {
+                    setGlobalChatId(existing._id);
+                    await pollGlobalChat(existing._id);
+                    setGlobalChatLoading(false);
+                    return existing._id;
+                }
+            }
+            const r = await fetch(`${API}/chats`, { method: 'POST', headers: ah, body: JSON.stringify({ name: `session:${id}` }) });
+            if (r.ok) { const d = await r.json(); setGlobalChatId(d.data._id); setGlobalChatLoading(false); return d.data._id; }
+        } catch (e) { console.error(e); }
+        setGlobalChatLoading(false);
+        return null;
+    }, [id]);
+
+    useEffect(() => {
+        if (tab === 'overview') fetchOrCreateGlobalChat();
+    }, [tab]);
+
+    useEffect(() => {
+        if (!globalChatId) return;
+        clearInterval(globalChatPollRef.current);
+        globalChatPollRef.current = setInterval(() => pollGlobalChat(globalChatId), 4000);
+        return () => clearInterval(globalChatPollRef.current);
+    }, [globalChatId]);
+
+    const sendGlobalChat = async (e) => {
+        e.preventDefault();
+        if (!globalChatText.trim() || !globalChatId || globalChatSending) return;
+        setGlobalChatSending(true);
+        try {
+            await fetch(`${API}/chats/${globalChatId}/messages`, { method: 'POST', headers: ah, body: JSON.stringify({ text: globalChatText.trim() }) });
+            setGlobalChatText('');
+            pollGlobalChat(globalChatId);
+        } catch {}
+        setGlobalChatSending(false);
+    };
+
+    const deleteGlobalChatMsg = async (msgId) => {
+        if (!globalChatId) return;
+        await fetch(`${API}/chats/${globalChatId}/messages/${msgId}`, { method: 'DELETE', headers: ah });
+        pollGlobalChat(globalChatId);
+    };
+
+    // ── Per-meeting chat ──────────────────────────────────────────────────────
+    const meetingChatKey = (entry) => entry.isRecurring
+        ? `rec:${entry.title}:${entry.recurrence?.frequency || 'weekly'}`
+        : `once:${entry.title}:${entry.datetime}`;
+
+    const getOrCreateMeetingChat = async (entry) => {
+        const key = meetingChatKey(entry);
+        if (meetingChats[key]) return meetingChats[key];
+        const chatName = `meeting:${id}:${key}`;
+        try {
+            const listRes = await fetch(`${API}/chats`, { headers: ah });
+            if (listRes.ok) {
+                const { data: chats } = await listRes.json();
+                const existing = (chats || []).find(c => c.name === chatName);
+                if (existing) { setMeetingChats(p => ({ ...p, [key]: existing._id })); return existing._id; }
+            }
+            const r = await fetch(`${API}/chats`, { method: 'POST', headers: ah, body: JSON.stringify({ name: chatName }) });
+            if (r.ok) { const d = await r.json(); setMeetingChats(p => ({ ...p, [key]: d.data._id })); return d.data._id; }
+        } catch (e) { console.error(e); }
+        return null;
+    };
+
+    // ── Settings save ─────────────────────────────────────────────────────────
+    const saveSettings = async () => {
+        setSettingsSaving(true);
+        const patch = {};
+        if (settingsForm.courseType && settingsForm.courseType !== session.courseType) patch.courseType = settingsForm.courseType;
+        if (settingsForm.status     && settingsForm.status     !== session.status)     patch.status     = settingsForm.status;
+        if (Object.keys(patch).length) {
+            const r = await fetch(`${API}/sessions/${id}`, { method: 'PATCH', headers: ah, body: JSON.stringify(patch) });
+            if (!r.ok) { const d = await r.json(); showInfo('Error', d.message); setSettingsSaving(false); return; }
+        }
+        fetchSession();
+        showInfo('Saved', 'Session settings updated.');
+        setSettingsSaving(false);
+    };
+
+    // ── Host reassign ─────────────────────────────────────────────────────────
+    useEffect(() => {
+        if (hostSearch.trim().length < 2) { setHostResults([]); return; }
+        const t = setTimeout(async () => {
+            try {
+                const r = await fetch(`${API}/users?search=${encodeURIComponent(hostSearch.trim())}&tutorOnly=true`, { headers: ah });
+                if (r.ok) { const d = await r.json(); setHostResults(d.data || []); }
+            } catch {}
+        }, 300);
+        return () => clearTimeout(t);
+    }, [hostSearch]);
+
+    const reassignHost = async (newUserId, newNickname) => {
+        showConfirm('Reassign Host', `Make ${newNickname} the new host? Current host keeps co-tutor access.`, async () => {
+            const currentHostId = String(session.hostTutor?._id || session.hostTutor);
+            const alreadyCo = (session.coTutors || []).some(ct => String(ct.userId?._id || ct.userId) === currentHostId);
+            const preserved = alreadyCo
+                ? session.coTutors
+                : [...(session.coTutors || []), { userId: currentHostId, canGrade: true, canSchedule: true, canEditCopy: true }];
+            const newCoTutors = normalizeCoTutors(preserved.filter(ct => String(ct.userId?._id || ct.userId) !== String(newUserId)));
+            const r = await fetch(`${API}/sessions/${id}`, { method: 'PATCH', headers: ah, body: JSON.stringify({ hostTutor: newUserId, coTutors: newCoTutors }) });
+            if (r.ok) { fetchSession(); setHostSearch(''); setHostResults([]); showInfo('Done', `${newNickname} is now the host.`); }
+            else { const d = await r.json(); showInfo('Error', d.message); }
+        });
     };
 
     // ── Override rank restriction ───────────────────────────────────────────
@@ -656,98 +932,83 @@ function ManageSession({ data, onLogout, startMeeting }) {
     );
 
     const course = session.courseId;
-    const statusColors = { draft: "secondary", active: "success", completed: "primary", archived: "dark" };
-    const link = session.privateCopyId===null?course._id:session.privateCopyId._id
+    const statusColors = { draft: 'secondary', active: 'success', completed: 'primary', archived: 'dark' };
+    const statusBg     = { draft: '#868e96', active: '#2f9e44', completed: '#1971c2', archived: '#212529' };
+    const link = session.privateCopyId===null ? course._id : session.privateCopyId._id;
     const courseTitle2 = courseTitle(course);
     return (
         <AppLayout data={data} onLogout={onLogout} title={courseTitle2}>
 
-                {/* Header */}
-                <div className="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-4">
-                    <div>
-                        <button className="btn btn-outline-secondary btn-sm mb-2" onClick={() => navigate("/manage/sessions")}>
-                            ← Sessions
+                {/* ══ Page header ══ */}
+                <div className="mb-4" style={{ borderBottom: '1px solid var(--bs-border-color)', paddingBottom: '1rem' }}>
+                    {/* Breadcrumb */}
+                    <nav style={{ fontSize: '.78rem', color: '#868e96', marginBottom: '.5rem' }}>
+                        <button className="btn btn-link p-0 text-muted text-decoration-none" style={{ fontSize: '.78rem' }} onClick={() => navigate('/manage/sessions')}>
+                            <i className="bi bi-chevron-left me-1" style={{ fontSize: '.65rem' }} />Sessions
                         </button>
-                        <h1 className="h3 fw-bold mb-1">{courseTitle(course)}</h1>
-                        <div className="d-flex gap-2 flex-wrap align-items-center">
-                            <span className={`badge bg-${statusColors[session.status] || "secondary"}`}>{session.status}</span>
-                            <span className="badge bg-light text-dark border">{session.courseType}</span>
-                            {session.isPrivateCopy && <span className="badge bg-warning text-dark">Has private copy</span>}
-                            {session.restrictionIgnored && <span className="badge bg-info text-dark">Rank override active</span>}
-                        </div>
-                    </div>
-                    {isHost && (
-                        <div className="d-flex gap-2 flex-wrap">
-                            <button className="btn btn-success btn-sm d-flex align-items-center gap-1"
-                                onClick={() => startMeeting({ sessionId: id })}>
-                                <i className="bi bi-camera-video-fill"></i> Start Video
-                            </button>
-                            <button className="btn btn-outline-info btn-sm d-flex align-items-center gap-1"
-                                onClick={copyInviteLink}
-                                title="Copy invite link for this video room">
-                                <i className={`bi ${inviteCopied ? "bi-check-lg" : "bi-link-45deg"}`}></i>
-                                {inviteCopied ? "Copied!" : "Invite link"}
-                            </button>
-                            {session.status === "draft" && (
-                                <button className="btn btn-success btn-sm" disabled={saving} onClick={() => updateStatus("active")}>
-                                    <i className="bi bi-play-fill me-1"></i>Start Session
-                                </button>
-                            )}
-                            {session.status === "active" && (
-                                <button className="btn btn-primary btn-sm" disabled={saving} onClick={() => updateStatus("completed")}>
-                                    <i className="bi bi-check2-all me-1"></i>Complete
-                                </button>
-                            )}
-                            {!session.privateCopyId && (
-                                <button className="btn btn-outline-warning btn-sm" disabled={creatingCopy} onClick={handleCreatePrivateCopy}>
-                                    {creatingCopy ? <span className="spinner-border spinner-border-sm me-1" /> : <i className="bi bi-files me-1"></i>}
-                                    Create Private Copy
-                                </button>
-                            )}
-                            {session.privateCopyId && (
-                                <button
-                                    className={`btn btn-sm ${session.copyEditAllowed ? "btn-warning" : "btn-outline-secondary"}`}
-                                    onClick={toggleCopyEdit}
-                                    title="Allow co-tutors to edit the private copy"
-                                >
-                                    <i className={`bi bi-pencil${session.copyEditAllowed ? "-fill" : ""} me-1`}></i>
-                                    Allow edit copy: {session.copyEditAllowed ? "ON" : "OFF"}
-                                </button>
-                            )}
-                            {!session.restrictionIgnored && (
-                                <button className="btn btn-outline-info btn-sm" onClick={overrideRank}>
-                                    <i className="bi bi-unlock me-1"></i>Override Rank
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </div>
+                        <span className="mx-1">·</span>
+                        <span className="fw-medium" style={{ color: 'var(--bs-body-color)' }}>{courseTitle(course)}</span>
+                    </nav>
 
-                {/* Course action links */}
-                <div className="mb-3 d-flex gap-2 flex-wrap">
-                    <button className="btn btn-sm btn-outline-primary"
-                        onClick={() => navigate(`/course/view/${session.courseId._id}`)}>
-                        <i className="bi bi-eye me-1"></i>View Course
-                    </button>
-                    <button className="btn btn-sm btn-outline-success"
-                        onClick={() => navigate(`/course/view/${link}?session=${id}`)}>
-                        <i className="bi bi-eye me-1"></i>Go to Course
-                    </button>
-                    <div className="d-flex gap-2" hidden={session.privateCopyId?true:false}>
-                        <button className="btn btn-sm btn-outline-warning"
-                            onClick={() => navigate(`/manage/course/preview/${session.privateCopyId._id}?private=1`)}>
-                            <i className="bi bi-pencil me-1"></i>Edit Private Copy
-                        </button>
-                        <button className="btn btn-sm btn-outline-warning"
-                            onClick={() => navigate(`/manage/course/${session.privateCopyId._id}`)}>
-                            <i className="bi bi-pencil me-1"></i>Edit Private Copy Detail
-                        </button>
+                    <div className="d-flex align-items-start justify-content-between flex-wrap gap-3">
+                        {/* Left: title + badges */}
+                        <div>
+                            <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                <h1 className="h4 fw-bold mb-0">{courseTitle(course)}</h1>
+                                <span className="badge rounded-pill" style={{ background: statusBg[session.status] || '#868e96', fontSize: '.72rem' }}>{session.status}</span>
+                                <span className="badge rounded-pill bg-light text-dark border" style={{ fontSize: '.72rem' }}>{session.courseType}</span>
+                                {session.privateCopyId && <span className="badge rounded-pill bg-warning text-dark" style={{ fontSize: '.72rem' }}><i className="bi bi-files me-1" />Copy active</span>}
+                                {session.restrictionIgnored && <span className="badge rounded-pill bg-info text-dark" style={{ fontSize: '.72rem' }}><i className="bi bi-unlock me-1" />Rank override</span>}
+                            </div>
+                            <div style={{ fontSize: '.8rem', color: '#868e96' }}>
+                                Host: <strong style={{ color: 'var(--bs-body-color)' }}>{session.hostTutor?.nickname || '—'}</strong>
+                                {session.hostTutor?.tutorRank && <span className="ms-2 badge bg-light text-dark border" style={{ fontSize: '.68rem' }}>{session.hostTutor.tutorRank}</span>}
+                                <span className="mx-2">·</span>
+                                <span>{session.coTutors?.length || 0} co-tutor{session.coTutors?.length !== 1 ? 's' : ''}</span>
+                                <span className="mx-2">·</span>
+                                <span>{groups.length} group{groups.length !== 1 ? 's' : ''}</span>
+                            </div>
+                        </div>
+
+                        {/* Right: action buttons */}
+                        <div className="d-flex gap-2 flex-wrap align-items-center">
+                            <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/course/view/${course._id}`)}>
+                                <i className="bi bi-eye me-1" />View Course
+                            </button>
+                            <button className="btn btn-sm btn-outline-success" onClick={() => navigate(`/course/view/${link}?session=${id}`)}>
+                                <i className="bi bi-play-circle me-1" />Go to Course
+                            </button>
+                            <button className="btn btn-sm btn-success d-flex align-items-center gap-1" onClick={async () => {
+                                // Use global session chat for the main video button
+                                startMeeting({ sessionId: id, meetingChatId: globalChatId, meetingTitle: courseTitle(course) });
+                            }}>
+                                <i className="bi bi-camera-video-fill" />{isHost ? 'Start Video' : 'Join Video'}
+                            </button>
+                            <button className="btn btn-sm btn-outline-secondary" onClick={copyInviteLink} title="Copy invite link">
+                                <i className={`bi ${inviteCopied ? 'bi-check-lg' : 'bi-link-45deg'}`} />
+                                {inviteCopied ? ' Copied!' : ' Invite'}
+                            </button>
+                            {(isHost || isPrivileged) && (
+                                <>
+                                    {session.status === 'draft' && (
+                                        <button className="btn btn-sm btn-success" disabled={saving} onClick={() => updateStatus('active')}>
+                                            <i className="bi bi-play-fill me-1" />Start
+                                        </button>
+                                    )}
+                                    {session.status === 'active' && (
+                                        <button className="btn btn-sm btn-primary" disabled={saving} onClick={() => updateStatus('completed')}>
+                                            <i className="bi bi-check2-all me-1" />Complete
+                                        </button>
+                                    )}
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 {/* Tabs */}
                 {(() => {
-                    const isTutorOrManager = isHost || myCoEntry || ['manage','admin','root'].includes(data.accessLevel);
+                    const isTutorOrManager = isHost || myCoEntry || isPrivileged;
                     const allTabs = [
                         { key: "overview",     label: "Overview",     icon: "bi-info-circle",     always: true },
                         { key: "schedule",     label: "Schedule",     icon: "bi-calendar-event",  always: true },
@@ -755,18 +1016,35 @@ function ManageSession({ data, onLogout, startMeeting }) {
                         { key: "deadlines",    label: "Deadlines",    icon: "bi-clock",            always: false },
                         { key: "assignments",  label: "Assignments",  icon: "bi-clipboard-check",  always: false },
                         { key: "tutors",       label: "Co-tutors",    icon: "bi-person-badge",     always: false },
+                        { key: "settings",     label: "Settings",     icon: "bi-sliders",          always: false, settingsOnly: true },
                     ];
-                    const visibleTabs = allTabs.filter(t => t.always || isTutorOrManager);
+                    const visibleTabs = allTabs.filter(t => {
+                        if (t.settingsOnly) return canSettings;
+                        return t.always || isTutorOrManager;
+                    });
                     return (
-                        <ul className="nav nav-tabs mb-4">
+                        <div className="d-flex gap-1 flex-wrap mb-4 p-1 rounded-3" style={{ background: 'var(--bs-tertiary-bg,#f1f3f5)', width: 'fit-content', maxWidth: '100%' }}>
                             {visibleTabs.map(t => (
-                                <li key={t.key} className="nav-item">
-                                    <button className={`nav-link ${tab === t.key ? "active" : ""}`} onClick={() => setTab(t.key)}>
-                                        <i className={`bi ${t.icon} me-1`}></i>{t.label}
-                                    </button>
-                                </li>
+                                <button key={t.key}
+                                    className="btn btn-sm d-flex align-items-center gap-1"
+                                    style={{
+                                        background: tab === t.key ? 'var(--bs-body-bg,#fff)' : 'transparent',
+                                        color: tab === t.key ? 'var(--bs-primary,#3b5bdb)' : 'var(--bs-secondary-color,#868e96)',
+                                        fontWeight: tab === t.key ? 600 : 400,
+                                        border: 'none',
+                                        boxShadow: tab === t.key ? '0 1px 3px rgba(0,0,0,.1)' : 'none',
+                                        borderRadius: 8,
+                                        padding: '.35rem .75rem',
+                                        fontSize: '.82rem',
+                                        transition: 'all .15s',
+                                    }}
+                                    onClick={() => setTab(t.key)}>
+                                    <i className={`bi ${t.icon}`} style={{ fontSize: '.8rem' }} />
+                                    {t.label}
+                                    {t.key === 'settings' && <i className="bi bi-lock-fill ms-1" style={{ fontSize: '.65rem', opacity: .6 }} title="Host & managers only" />}
+                                </button>
                             ))}
-                        </ul>
+                        </div>
                     );
                 })()}
 
@@ -774,24 +1052,20 @@ function ManageSession({ data, onLogout, startMeeting }) {
                 {tab === "overview" && (
                     <div>
                         {/* ── Stat cards ── */}
-                        <div className="row g-3 mb-4">
+                        <div className="d-flex gap-2 flex-wrap mb-4">
                             {[
-                                { label: 'Groups',          value: groups.length,                                                                                    icon: 'bi-people',           color: '#3b5bdb' },
-                                { label: 'Active students', value: groups.reduce((s,g) => s + (g.members?.filter(m=>m.status==='active').length||0), 0),             icon: 'bi-person-check',     color: '#2f9e44' },
-                                { label: 'Schedule entries',value: session.schedule?.length || 0,                                                                    icon: 'bi-calendar-event',   color: '#f08c00' },
-                                { label: 'Deadlines',       value: session.deadlines?.length || 0,                                                                   icon: 'bi-clock',            color: '#e03131' },
-                                { label: 'Assignments',     value: assignments.length,                                                                               icon: 'bi-clipboard-check',  color: '#7048e8' },
-                                { label: 'Pending reviews', value: Object.values(submissions).flat().filter(s=>s.status==='pending').length,                         icon: 'bi-hourglass-split',  color: '#c2255c' },
+                                { label: 'Groups',          value: groups.length,                                                                         icon: 'bi-people',           color: '#3b5bdb' },
+                                { label: 'Active students', value: groups.reduce((s,g) => s+(g.members?.filter(m=>m.status==='active').length||0),0),     icon: 'bi-person-check',     color: '#2f9e44' },
+                                { label: 'Schedule',        value: session.schedule?.length || 0,                                                         icon: 'bi-calendar-event',   color: '#f08c00' },
+                                { label: 'Deadlines',       value: session.deadlines?.length || 0,                                                        icon: 'bi-clock',            color: '#e03131' },
+                                { label: 'Assignments',     value: assignments.length,                                                                    icon: 'bi-clipboard-check',  color: '#7048e8' },
+                                { label: 'Pending',         value: Object.values(submissions).flat().filter(s=>s.status==='pending').length,              icon: 'bi-hourglass-split',  color: '#c2255c' },
                             ].map(c => (
-                                <div key={c.label} className="col-6 col-md-4 col-lg-2">
-                                    <div className="card border-0 shadow-sm h-100">
-                                        <div className="card-body p-3">
-                                            <div className="d-flex justify-content-between align-items-start mb-1">
-                                                <small className="text-muted text-uppercase fw-semibold" style={{ fontSize: '.68rem', letterSpacing: '.05em' }}>{c.label}</small>
-                                                <i className={`bi ${c.icon}`} style={{ color: c.color, fontSize: '1.1rem', opacity: .8 }}></i>
-                                            </div>
-                                            <div className="fw-bold" style={{ fontSize: '1.6rem', color: c.color, lineHeight: 1.1 }}>{c.value}</div>
-                                        </div>
+                                <div key={c.label} className="d-flex align-items-center gap-2 px-3 py-2 rounded-3" style={{ background: 'var(--bs-tertiary-bg,#f8f9fa)', border: '1px solid var(--bs-border-color,#dee2e6)', minWidth: 120 }}>
+                                    <i className={`bi ${c.icon}`} style={{ color: c.color, fontSize: '1.15rem' }} />
+                                    <div>
+                                        <div className="fw-bold" style={{ fontSize: '1.1rem', lineHeight: 1, color: c.color }}>{c.value}</div>
+                                        <div style={{ fontSize: '.68rem', color: '#868e96', textTransform: 'uppercase', letterSpacing: '.04em' }}>{c.label}</div>
                                     </div>
                                 </div>
                             ))}
@@ -873,6 +1147,46 @@ function ManageSession({ data, onLogout, startMeeting }) {
                                         })()}
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                        {/* ── Global session chat ── */}
+                        <div className="col-12 mt-3">
+                            <div className="card border-0 shadow-sm" style={{ height: 420, display: 'flex', flexDirection: 'column' }}>
+                                <div className="card-header bg-white fw-semibold d-flex align-items-center gap-2">
+                                    <i className="bi bi-chat-dots text-primary"></i> Session Chat
+                                    <span className="badge bg-secondary ms-auto" style={{ fontSize: '.65rem' }}>{globalChatMessages.length} messages</span>
+                                </div>
+                                <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                    {globalChatLoading && <div className="text-center text-muted py-3"><span className="spinner-border spinner-border-sm me-2" />Loading chat…</div>}
+                                    {!globalChatLoading && globalChatMessages.length === 0 && (
+                                        <div className="text-center text-muted py-4" style={{ fontSize: '.85rem' }}>No messages yet. Be the first to write!</div>
+                                    )}
+                                    {globalChatMessages.map(msg => {
+                                        const isMine = (msg.sender?._id || msg.sender) === data._id;
+                                        return (
+                                            <div key={msg._id} style={{ display: 'flex', flexDirection: isMine ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: 6 }}>
+                                                <div style={{ maxWidth: '70%' }}>
+                                                    {!isMine && <div style={{ fontSize: '.7rem', color: '#868e96', marginBottom: 2, marginLeft: 4 }}>{msg.sender?.nickname || 'Unknown'}</div>}
+                                                    <div style={{ background: isMine ? '#3b5bdb' : '#f1f3f5', color: isMine ? '#fff' : '#1a1b2e', borderRadius: isMine ? '12px 12px 3px 12px' : '12px 12px 12px 3px', padding: '7px 12px', fontSize: '.85rem', wordBreak: 'break-word' }}>
+                                                        {msg.text}
+                                                    </div>
+                                                    <div style={{ fontSize: '.67rem', color: '#adb5bd', marginTop: 2, textAlign: isMine ? 'right' : 'left', padding: '0 4px' }}>
+                                                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        {isMine && (
+                                                            <button onClick={() => deleteGlobalChatMsg(msg._id)} style={{ background: 'none', border: 'none', color: '#adb5bd', cursor: 'pointer', padding: '0 0 0 6px', fontSize: '.67rem' }} title="Delete">✕</button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <form onSubmit={sendGlobalChat} style={{ padding: '8px 12px', borderTop: '1px solid #dee2e6', display: 'flex', gap: 8 }}>
+                                    <input className="form-control form-control-sm" placeholder="Type a message…" value={globalChatText} onChange={e => setGlobalChatText(e.target.value)} disabled={!globalChatId} />
+                                    <button type="submit" className="btn btn-primary btn-sm" disabled={globalChatSending || !globalChatText.trim() || !globalChatId}>
+                                        {globalChatSending ? <span className="spinner-border spinner-border-sm" /> : <i className="bi bi-send-fill" />}
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -985,9 +1299,25 @@ function ManageSession({ data, onLogout, startMeeting }) {
                             schedule={session.schedule || []}
                             onRemove={removeScheduleEntry}
                             canEdit={canEditSession}
-                            onEventClick={(ev) => ev.meetingLink && startMeeting({ sessionId: id })}
+                            onEventClick={async (ev) => {
+                                if (ev.meetingLink) {
+                                    const chatId = await getOrCreateMeetingChat(ev);
+                                    startMeeting({ sessionId: id, meetingChatId: chatId, meetingTitle: ev.title });
+                                }
+                            }}
                             onCopyLink={() => copyInviteLink()}
                         />
+
+                        {/* ── Per-meeting chat: click a schedule event to load ── */}
+                        {session.schedule?.length > 0 && (
+                            <MeetingChatPanel
+                                schedule={session.schedule}
+                                meetingChats={meetingChats}
+                                getOrCreateMeetingChat={getOrCreateMeetingChat}
+                                ah={ah}
+                                myId={data._id}
+                            />
+                        )}
                     </div>
                 )}
 
@@ -1544,7 +1874,7 @@ function ManageSession({ data, onLogout, startMeeting }) {
                 {/* ══ TAB: CO-TUTORS ══ */}
                 {tab === "tutors" && (
                     <div>
-                        {isHost && (
+                        {(isHost || isPrivileged) && (
                             <div className="card border-0 shadow-sm mb-4">
                                 <div className="card-header bg-white fw-semibold">
                                     <i className="bi bi-person-plus me-2 text-primary"></i>Add Co-tutor
@@ -1643,6 +1973,147 @@ function ManageSession({ data, onLogout, startMeeting }) {
                         )}
                     </div>
                 )}
+                {/* ══ TAB: SETTINGS ══ */}
+                {tab === "settings" && canSettings && (
+                    <div className="row g-4">
+                        {/* ── Status & type ── */}
+                        <div className="col-md-6">
+                            <div className="card border-0 shadow-sm h-100">
+                                <div className="card-header bg-white fw-semibold"><i className="bi bi-toggles me-2 text-primary" />Session State</div>
+                                <div className="card-body">
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold small">Status</label>
+                                        <select className="form-select"
+                                            defaultValue={session.status}
+                                            onChange={e => setSettingsForm(p => ({ ...p, status: e.target.value }))}>
+                                            <option value="draft">Draft</option>
+                                            <option value="active">Active</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="archived">Archived</option>
+                                        </select>
+                                        <small className="text-muted">Change session status directly.</small>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold small">Session Type</label>
+                                        <select className="form-select"
+                                            defaultValue={session.courseType}
+                                            onChange={e => setSettingsForm(p => ({ ...p, courseType: e.target.value }))}>
+                                            <option value="HOSTED">HOSTED — free access via group</option>
+                                            <option value="MENTORED">MENTORED — must own course</option>
+                                            <option value="SELF_TAUGHT">SELF_TAUGHT</option>
+                                        </select>
+                                    </div>
+                                    <div className="mb-3">
+                                        <div className="form-check form-switch">
+                                            <input className="form-check-input" type="checkbox" id="settingsCopyEdit"
+                                                checked={session.copyEditAllowed}
+                                                onChange={toggleCopyEdit} />
+                                            <label className="form-check-label small" htmlFor="settingsCopyEdit">Allow co-tutors to edit private copy</label>
+                                        </div>
+                                    </div>
+                                    {!session.restrictionIgnored && (
+                                        <div className="mb-3">
+                                            <div className="form-check form-switch">
+                                                <input className="form-check-input" type="checkbox" id="settingsRankOverride"
+                                                    onChange={e => { if (e.target.checked) overrideRank(); }} />
+                                                <label className="form-check-label small" htmlFor="settingsRankOverride">Override tutor rank restriction</label>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {session.restrictionIgnored && (
+                                        <div className="mb-3">
+                                            <span className="badge bg-warning text-dark me-2">Rank override active</span>
+                                        </div>
+                                    )}
+                                    <button className="btn btn-primary btn-sm" disabled={settingsSaving} onClick={saveSettings}>
+                                        {settingsSaving ? <><span className="spinner-border spinner-border-sm me-2" />Saving…</> : 'Save Changes'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ── Host reassign ── */}
+                        <div className="col-md-6">
+                            <div className="card border-0 shadow-sm h-100">
+                                <div className="card-header bg-white fw-semibold"><i className="bi bi-person-fill-gear me-2 text-warning" />Reassign Host</div>
+                                <div className="card-body">
+                                    <p className="text-muted small mb-3">
+                                        Transfer host role to another tutor. The current host will remain as a co-tutor with full permissions.
+                                    </p>
+                                    <div className="mb-2">
+                                        <label className="form-label small fw-semibold">Current host</label>
+                                        <div className="d-flex align-items-center gap-2 p-2 rounded bg-light border">
+                                            <i className="bi bi-person-circle text-primary fs-5" />
+                                            <div>
+                                                <div className="fw-semibold small">{session.hostTutor?.nickname || '—'}</div>
+                                                <div style={{ fontSize: '.75rem', color: '#868e96' }}>{session.hostTutor?.email}{session.hostTutor?.tutorRank && <span className="badge bg-light text-dark border ms-2">{session.hostTutor.tutorRank}</span>}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <label className="form-label small fw-semibold">Search new host</label>
+                                    <div className="position-relative mb-2">
+                                        <div className="input-group">
+                                            <span className="input-group-text"><i className="bi bi-search" /></span>
+                                            <input type="text" className="form-control" placeholder="Search tutors by name or email…"
+                                                value={hostSearch} onChange={e => setHostSearch(e.target.value)} autoComplete="off" />
+                                        </div>
+                                        {hostSearch.trim().length >= 2 && hostResults.length === 0 && (
+                                            <small className="text-muted ms-1 mt-1 d-block">No tutors found</small>
+                                        )}
+                                    </div>
+                                    {hostResults.length > 0 && (
+                                        <div className="border rounded" style={{ maxHeight: 200, overflowY: 'auto' }}>
+                                            {hostResults
+                                                .filter(u => String(u._id) !== String(session.hostTutor?._id || session.hostTutor))
+                                                .map(u => (
+                                                <div key={u._id} className="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                                    <div>
+                                                        <span className="fw-semibold small">{u.nickname}</span>
+                                                        <small className="text-muted ms-2">{u.email}</small>
+                                                        {u.tutorRank && <span className="badge bg-light text-dark border ms-2">{u.tutorRank}</span>}
+                                                    </div>
+                                                    <button className="btn btn-sm btn-warning" onClick={() => reassignHost(u._id, u.nickname)}>
+                                                        Make Host
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ── Private copy ── */}
+                        <div className="col-12">
+                            <div className="card border-0 shadow-sm">
+                                <div className="card-header bg-white fw-semibold"><i className="bi bi-files me-2 text-purple" style={{ color: '#7048e8' }} />Private Course Copy</div>
+                                <div className="card-body">
+                                    {session.privateCopyId ? (
+                                        <div className="d-flex align-items-center gap-3 flex-wrap">
+                                            <span className="badge bg-success"><i className="bi bi-check-circle me-1" />Private copy exists</span>
+                                            <button className={`btn btn-sm ${session.copyEditAllowed ? 'btn-warning' : 'btn-outline-secondary'}`} onClick={toggleCopyEdit}>
+                                                <i className={`bi bi-pencil${session.copyEditAllowed ? '-fill' : ''} me-1`} />
+                                                Co-tutor editing: {session.copyEditAllowed ? 'ON' : 'OFF'}
+                                            </button>
+                                            <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/manage/course/preview/${session.privateCopyId._id || session.privateCopyId}?private=1`)}>
+                                                <i className="bi bi-pencil me-1" />Edit Copy
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="d-flex align-items-center gap-3">
+                                            <span className="text-muted small">No private copy yet. Create one to customize course content for this session without affecting the original.</span>
+                                            <button className="btn btn-sm btn-outline-warning flex-shrink-0" disabled={creatingCopy} onClick={handleCreatePrivateCopy}>
+                                                {creatingCopy ? <span className="spinner-border spinner-border-sm me-1" /> : <i className="bi bi-files me-1" />}
+                                                Create Private Copy
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
             <UtilityModal show={modal.show} type={modal.type} title={modal.title} message={modal.message}
                 danger={modal.danger} confirmToken={modal.confirmToken} tokenLabel={modal.tokenLabel}
                 deleteLabel={modal.deleteLabel || "Delete"}

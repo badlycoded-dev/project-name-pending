@@ -239,9 +239,13 @@ function EditCourse({ data, onLogout }) {
             const res = await fetch(`${toHttps(process.env.REACT_APP_API_URL || 'https://localhost:4040/api')}/manage/courses/${id}`, {
                 method: "PATCH", headers: ah,
                 body: JSON.stringify({
-                    userId: formData.userId, status: formData.status,
-                    base_lang: baseLang, add_langs: addLangs, trans: transToSave,
-                    direction: formData.direction, level: formData.level,
+                    userId: formData.userId,
+                    status: formData.status,
+                    base_lang: baseLang,
+                    add_langs: addLangs,
+                    trans: transToSave,
+                    direction: formData.direction,
+                    level: formData.level,
                     courseType: formData.courseType || "SELF_TAUGHT",
                     price: formData.price ? parseFloat(formData.price) : 0,
                     links: mergedLinks

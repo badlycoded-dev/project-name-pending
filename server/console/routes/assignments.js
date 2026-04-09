@@ -1,13 +1,13 @@
 const router     = require('express').Router()
 const passport   = require('passport')
 const controller = require('../controllers/assignments')
-const { validate } = require('../utils/utils')
+const { validate, validateDynamic } = require('../utils/utils')
 const multer = require('multer')
 const path   = require('path')
 const fs     = require('fs')
 
 const auth     = passport.authenticate('jwt', { session: false })
-const tutorVal = validate('tutor')
+const tutorVal = validateDynamic('tutor')
 
 const tmpDir = path.join(__dirname, '../../storage/tmp')
 fs.mkdirSync(tmpDir, { recursive: true })

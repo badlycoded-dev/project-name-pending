@@ -13,6 +13,7 @@ const resources = {
           "schedule": "Schedule",
           "groups": "Groups",
           "members": "Members",
+          "chat": "Chat",
           "settings": "Settings"
         },
         "progressAnalytics": "Course Progress & Analytics",
@@ -57,7 +58,12 @@ const resources = {
         "redeem": "Redeem Key",
         "manageKeys": "Key Generator",
         "manageSessions": "My Sessions",
-        "management": "Management"
+        "mySessions": "My Sessions",
+        "applyNow": "Apply",
+        "reviewApplications": "Review Applications",
+        "management": "Management",
+        "applyAsTutor": "Apply as Tutor",
+        "supportTicket": "Support Ticket"
       },
       "redeem": {
         "title": "Redeem a Product Key",
@@ -185,7 +191,11 @@ const resources = {
         "title": "Account",
         "welcome": "Welcome back",
         "student": "Student",
+        "root":"Developer",
         "admin": "ADMIN",
+        "manager":"MANAGER",
+        "quality":"HR",
+        "user":"USER",
         "teacher": "TEACHER",
         "enrolled": "ENROLLED",
         "created": "CREATED",
@@ -204,7 +214,10 @@ const resources = {
         "serverErrorDelete": "Server error while deleting course",
         "deleteCourse": "Delete Course",
         "manage": "Manage",
-        "redeem": "Redeem Course"
+        "redeem": "Redeem Course",
+        "mySessions": "My Sessions",
+        "joinChat": "Join Chat",
+        "noSessions": "You have no active sessions."
       },
       "cartTitle": "Shopping Cart",
       "yourCartIsEmpty": "Your cart is empty",
@@ -224,7 +237,7 @@ const resources = {
         "havePromo": "Have a promo code?",
         "tryPromo": "Try 'REACT'",
         "apply": "Apply",
-        "promoApplied": "Promo code applied: -$10.00",
+        "promoApplied": "Promo code successfully applied!",
         "invalidPromo": "Invalid promo code",
         "addMore1": "Add",
         "addMore2": "more courses to get",
@@ -297,7 +310,12 @@ const resources = {
         "alertAddSkill": "Please add at least one skill.",
         "alertAgree": "You must agree to the terms.",
         "alertSuccess": "Application submitted successfully!",
-        "alertError": "Error sending application."
+        "alertError": "Error sending application.",
+        "applyFor": "Applying for",
+        "roleTeacher": "Teacher / Tutor",
+        "roleCreator": "Course Creator",
+        "roleTeacherDesc": "Apply to teach live sessions and mentor students.",
+        "roleCreatorDesc": "Apply to create and publish courses on the platform."
       },
       "addCourseForm": {
         "uploadCover": "Upload Cover Image",
@@ -350,6 +368,7 @@ const resources = {
         "loadingContent": "Loading content...",
         "addToCart": "Add to Cart",
         "enrollNow": "Enroll Now",
+        "viewCourse": "View Course",
         "guaranteeText": "30-day money-back guarantee.",
         "selectDirection": "Select direction",
         "selectLevel": "Select level",
@@ -446,6 +465,27 @@ const resources = {
         "senior": "Senior",
         "guru": "Guru 🚀"
       },
+      
+      "support": {
+        "desc": "Submit a support request. Our team will get back to you as soon as possible.",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "priority": "Priority",
+        "priorityLow": "Low",
+        "priorityNormal": "Normal",
+        "priorityHigh": "High",
+        "priorityUrgent": "Urgent",
+        "subject": "Subject",
+        "subjectPlaceholder": "Briefly describe your issue",
+        "message": "Message",
+        "messagePlaceholder": "Describe your issue in detail...",
+        "submitBtn": "Submit Ticket",
+        "submitting": "Submitting...",
+        "alertFillRequired": "Please fill in all required fields.",
+        "alertSuccess": "Your ticket has been submitted! We will contact you soon.",
+        "alertError": "Error submitting ticket:"
+      },
       "common": {
         "start": "Start",
         "schedule": "Schedule",
@@ -501,8 +541,13 @@ const resources = {
       "nav": {
         "redeem": "Активувати ключ",
         "manageKeys": "Генератор ключів",
-        "manageSessions": "Мої сесії",
-        "management": "Управління"
+        "manageSessions": "Керування моїми сесіями",
+        "mySessions": "Мої сесії",
+        "applyNow": "Подати заявку",
+        "reviewApplications": "Перевірити заявки",
+        "management": "Керування",
+        "applyAsTutor": "Стати тьютором",
+        "supportTicket": "Тікет підтримки"
       },
       "redeem": {
         "title": "Активація ключа",
@@ -524,8 +569,8 @@ const resources = {
         "emptyDesc": "Зберігайте сюди курси, щоб вони не загубилися!",
         "searchCourses": "Пошук курсів",
         "courseDescFallback": "Опис курсу...",
-        "free": "Безплатно",
-        "details": "Подробнее"
+        "free": "Безкоштовно",
+        "details": "Детальніше"
       },
       "liveSession": {
         "title": "Пряма сесія",
@@ -633,8 +678,12 @@ const resources = {
         "title": "Особистий кабінет",
         "welcome": "З поверненням",
         "student": "Студент",
-        "admin": "АДМІН",
-        "teacher": "ВИКЛАДАЧ",
+        "root":"Розробник",
+        "admin": "Адміністрація",
+        "manager":"Менеджер",
+        "quality":"HR",
+        "user":"Користувач",
+        "teacher": "Викладач",
         "enrolled": "КУПЛЕНО",
         "created": "СТВОРЕНО",
         "createdCourses": "Створено мною",
@@ -652,7 +701,10 @@ const resources = {
         "serverErrorDelete": "Помилка сервера під час видалення курсу",
         "deleteCourse": "Видалити курс",
         "manage": "Керувати",
-        "redeem": "Активувати курс"
+        "redeem": "Активувати курс",
+        "mySessions": "Мої сесії",
+        "joinChat": "Приєднатись до чату",
+        "noSessions": "У вас немає активних сесій."
       },
       "cartTitle": "Кошик",
       "yourCartIsEmpty": "Ваш кошик порожній",
@@ -745,7 +797,12 @@ const resources = {
         "alertAddSkill": "Будь ласка, додайте хоча б одну навичку.",
         "alertAgree": "Ви повинні погодитися з умовами.",
         "alertSuccess": "Заявку успішно надіслано!",
-        "alertError": "Помилка відправки заявки."
+        "alertError": "Помилка відправки заявки.",
+        "applyFor": "Подаю заявку на",
+        "roleTeacher": "Викладач / Тьютор",
+        "roleCreator": "Автор курсів",
+        "roleTeacherDesc": "Подайте заявку, щоб проводити живі сесії та менторувати студентів.",
+        "roleCreatorDesc": "Подайте заявку, щоб створювати та публікувати курси на платформі."
       },
       "addCourseForm": {
         "uploadCover": "Завантажити обкладинку",
@@ -798,6 +855,7 @@ const resources = {
         "loadingContent": "Завантаження вмісту...",
         "addToCart": "Додати до кошика",
         "enrollNow": "Записатися зараз",
+        "viewCourse": "Переглянути курс",
         "guaranteeText": "30-денна гарантія повертання грошей.",
         "selectDirection": "Оберіть напрямок",
         "selectLevel": "Оберіть рівень",
@@ -902,6 +960,7 @@ const resources = {
           "schedule": "Розклад",
           "groups": "Групи",
           "members": "Учасники",
+          "chat": "Чат",
           "settings": "Налаштування"
         },
         "progressAnalytics": "Прогрес та аналітика курсу",
@@ -941,6 +1000,27 @@ const resources = {
         "selectInstructor": "Виберіть викладача...",
         "standardSchedule": "Стандартний розклад",
         "placeholderSchedule": "наприклад, Вт, Чт 14:00"
+      },
+      
+      "support": {
+        "desc": "Надішліть запит у підтримку. Наша команда зв'яжеться з вами якнайшвидше.",
+        "firstName": "Ім'я",
+        "lastName": "Прізвище",
+        "email": "Email",
+        "priority": "Пріоритет",
+        "priorityLow": "Низький",
+        "priorityNormal": "Нормальний",
+        "priorityHigh": "Високий",
+        "priorityUrgent": "Терміновий",
+        "subject": "Тема",
+        "subjectPlaceholder": "Коротко опишіть вашу проблему",
+        "message": "Повідомлення",
+        "messagePlaceholder": "Детально опишіть вашу проблему...",
+        "submitBtn": "Надіслати тікет",
+        "submitting": "Надсилання...",
+        "alertFillRequired": "Будь ласка, заповніть всі обов'язкові поля.",
+        "alertSuccess": "Ваш тікет надіслано! Ми зв'яжемося з вами найближчим часом.",
+        "alertError": "Помилка надсилання тікету:"
       },
       "common": {
         "addToWishlist": "Додати до бажань",
@@ -989,7 +1069,12 @@ const resources = {
         "redeem": "Schlüssel einlösen",
         "manageKeys": "Schlüssel-Generator",
         "manageSessions": "Meine Sitzungen",
-        "management": "VERWALTUNG"
+        "management": "VERWALTUNG",
+        "applyAsTutor": "Als Tutor bewerben",
+        "supportTicket": "Support-Ticket",
+        "mySessions": "Meine Sitzungen",
+        "applyNow": "Bewerben",
+        "reviewApplications": "Bewerbungen prüfen"
       },
       "redeem": {
         "title": "Produkt-Schlüssel einlösen",
@@ -1136,7 +1221,10 @@ const resources = {
         "serverErrorDelete": "Serverfehler beim Löschen des Kurses",
         "deleteCourse": "Kurs löschen",
         "manage": "Verwalten",
-        "redeem": "Kurs aktivieren"
+        "redeem": "Kurs aktivieren",
+        "mySessions": "Meine Sitzungen",
+        "joinChat": "Chat beitreten",
+        "noSessions": "Sie haben keine aktiven Sitzungen."
       },
       "cartTitle": "Warenkorb",
       "yourCartIsEmpty": "Ihr Warenkorb ist leer",
@@ -1229,7 +1317,12 @@ const resources = {
         "alertAddSkill": "Bitte fügen Sie mindestens eine Fähigkeit hinzu.",
         "alertAgree": "Sie müssen den Bedingungen zustimmen.",
         "alertSuccess": "Bewerbung erfolgreich eingereicht!",
-        "alertError": "Fehler beim Senden der Bewerbung."
+        "alertError": "Fehler beim Senden der Bewerbung.",
+        "applyFor": "Bewerbe mich als",
+        "roleTeacher": "Lehrer / Tutor",
+        "roleCreator": "Kursersteller",
+        "roleTeacherDesc": "Bewerben Sie sich, um Live-Sitzungen zu leiten und Studierende zu betreuen.",
+        "roleCreatorDesc": "Bewerben Sie sich, um Kurse auf der Plattform zu erstellen und zu veröffentlichen."
       },
       "addCourseForm": {
         "uploadCover": "Titelbild hochladen",
@@ -1378,6 +1471,7 @@ const resources = {
           "schedule": "Zeitplan",
           "groups": "Gruppen",
           "members": "Mitglieder",
+          "chat": "Chat",
           "settings": "Einstellungen"
         },
         "progressAnalytics": "Kursfortschritt & Analytik",
@@ -1417,6 +1511,27 @@ const resources = {
         "selectInstructor": "Instruktor auswählen...",
         "standardSchedule": "Standardzeitplan",
         "placeholderSchedule": "z.B. Di, Do 14:00"
+      },
+      
+      "support": {
+        "desc": "Senden Sie eine Support-Anfrage. Unser Team wird sich so schnell wie möglich bei Ihnen melden.",
+        "firstName": "Vorname",
+        "lastName": "Nachname",
+        "email": "E-Mail",
+        "priority": "Priorität",
+        "priorityLow": "Niedrig",
+        "priorityNormal": "Normal",
+        "priorityHigh": "Hoch",
+        "priorityUrgent": "Dringend",
+        "subject": "Betreff",
+        "subjectPlaceholder": "Beschreiben Sie Ihr Problem kurz",
+        "message": "Nachricht",
+        "messagePlaceholder": "Beschreiben Sie Ihr Problem ausführlich...",
+        "submitBtn": "Ticket einreichen",
+        "submitting": "Wird eingereicht...",
+        "alertFillRequired": "Bitte füllen Sie alle Pflichtfelder aus.",
+        "alertSuccess": "Ihr Ticket wurde eingereicht! Wir melden uns bald.",
+        "alertError": "Fehler beim Einreichen des Tickets:"
       },
       "common": {
         "addToWishlist": "Zur Wunschliste hinzufügen",
@@ -1465,7 +1580,12 @@ const resources = {
         "redeem": "Utiliser la clé",
         "manageKeys": "Générateur de clés",
         "manageSessions": "Mes sessions",
-        "management": "GESTION"
+        "management": "GESTION",
+        "applyAsTutor": "Postuler comme tuteur",
+        "supportTicket": "Ticket de support",
+        "mySessions": "Mes sessions",
+        "applyNow": "Postuler",
+        "reviewApplications": "Examiner les candidatures"
       },
       "redeem": {
         "title": "Utiliser une clé de produit",
@@ -1612,7 +1732,10 @@ const resources = {
         "serverErrorDelete": "Erreur du serveur lors de la suppression du cours",
         "deleteCourse": "Supprimer le cours",
         "manage": "Gérer",
-        "redeem": "Activer le cours"
+        "redeem": "Activer le cours",
+        "mySessions": "Mes sessions",
+        "joinChat": "Rejoindre le chat",
+        "noSessions": "Vous n'avez pas de sessions actives."
       },
       "cartTitle": "Panier",
       "yourCartIsEmpty": "Votre panier est vide",
@@ -1705,7 +1828,12 @@ const resources = {
         "alertAddSkill": "Veuillez ajouter au moins une compétence.",
         "alertAgree": "Vous devez accepter les conditions.",
         "alertSuccess": "Candidature soumise avec succès !",
-        "alertError": "Erreur lors de l'envoi de la candidature."
+        "alertError": "Erreur lors de l'envoi de la candidature.",
+        "applyFor": "Je postule comme",
+        "roleTeacher": "Professeur / Tuteur",
+        "roleCreator": "Créateur de cours",
+        "roleTeacherDesc": "Postulez pour animer des sessions en direct et encadrer les étudiants.",
+        "roleCreatorDesc": "Postulez pour créer et publier des cours sur la plateforme."
       },
       "addCourseForm": {
         "uploadCover": "Télécharger la couverture",
@@ -1854,6 +1982,7 @@ const resources = {
           "schedule": "Calendrier",
           "groups": "Groupes",
           "members": "Membres",
+          "chat": "Chat",
           "settings": "Paramètres"
         },
         "progressAnalytics": "Progrès et analyse du cours",
@@ -1893,6 +2022,27 @@ const resources = {
         "selectInstructor": "Sélectionner un instructeur...",
         "standardSchedule": "Calendrier standard",
         "placeholderSchedule": "par exemple, Mar, Jeu 14:00"
+      },
+      
+      "support": {
+        "desc": "Soumettez une demande d'assistance. Notre équipe vous répondra dans les plus brefs délais.",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "email": "E-mail",
+        "priority": "Priorité",
+        "priorityLow": "Faible",
+        "priorityNormal": "Normale",
+        "priorityHigh": "Élevée",
+        "priorityUrgent": "Urgente",
+        "subject": "Sujet",
+        "subjectPlaceholder": "Décrivez brièvement votre problème",
+        "message": "Message",
+        "messagePlaceholder": "Décrivez votre problème en détail...",
+        "submitBtn": "Soumettre le ticket",
+        "submitting": "Soumission en cours...",
+        "alertFillRequired": "Veuillez remplir tous les champs obligatoires.",
+        "alertSuccess": "Votre ticket a été soumis ! Nous vous contacterons bientôt.",
+        "alertError": "Erreur lors de la soumission :"
       },
       "common": {
         "addToWishlist": "Ajouter à la liste de souhaits",
@@ -1941,7 +2091,12 @@ const resources = {
         "redeem": "Riscatta codice",
         "manageKeys": "Generatore di chiavi",
         "manageSessions": "Le mie sessioni",
-        "management": "GESTIONE"
+        "management": "GESTIONE",
+        "applyAsTutor": "Candidati come tutor",
+        "supportTicket": "Ticket di supporto",
+        "mySessions": "Le mie sessioni",
+        "applyNow": "Candidati",
+        "reviewApplications": "Revisiona candidature"
       },
       "redeem": {
         "title": "Riscatta un codice prodotto",
@@ -2088,7 +2243,10 @@ const resources = {
         "serverErrorDelete": "Errore del server durante l'eliminazione",
         "deleteCourse": "Elimina corso",
         "manage": "Gestisci",
-        "redeem": "Attiva corso"
+        "redeem": "Attiva corso",
+        "mySessions": "Le mie sessioni",
+        "joinChat": "Unisciti alla chat",
+        "noSessions": "Non hai sessioni attive."
       },
       "cartTitle": "Carrello",
       "yourCartIsEmpty": "Il tuo carrello è vuoto",
@@ -2181,7 +2339,12 @@ const resources = {
         "alertAddSkill": "Aggiungi almeno una competenza.",
         "alertAgree": "Devi accettare i termini.",
         "alertSuccess": "Candidatura inviata con successo!",
-        "alertError": "Errore durante l'invio della candidatura."
+        "alertError": "Errore durante l'invio della candidatura.",
+        "applyFor": "Mi candido come",
+        "roleTeacher": "Insegnante / Tutor",
+        "roleCreator": "Creatore di corsi",
+        "roleTeacherDesc": "Candidati per condurre sessioni dal vivo e fare da mentore agli studenti.",
+        "roleCreatorDesc": "Candidati per creare e pubblicare corsi sulla piattaforma."
       },
       "addCourseForm": {
         "uploadCover": "Carica copertina",
@@ -2330,6 +2493,7 @@ const resources = {
           "schedule": "Programma",
           "groups": "Gruppi",
           "members": "Membri",
+          "chat": "Chat",
           "settings": "Impostazioni"
         },
         "progressAnalytics": "Progresso e analitiche del corso",
@@ -2369,6 +2533,27 @@ const resources = {
         "selectInstructor": "Seleziona istruttore...",
         "standardSchedule": "Programma standard",
         "placeholderSchedule": "es. Mar, Gio 14:00"
+      },
+      
+      "support": {
+        "desc": "Invia una richiesta di supporto. Il nostro team ti risponderà al più presto.",
+        "firstName": "Nome",
+        "lastName": "Cognome",
+        "email": "Email",
+        "priority": "Priorità",
+        "priorityLow": "Bassa",
+        "priorityNormal": "Normale",
+        "priorityHigh": "Alta",
+        "priorityUrgent": "Urgente",
+        "subject": "Oggetto",
+        "subjectPlaceholder": "Descrivi brevemente il problema",
+        "message": "Messaggio",
+        "messagePlaceholder": "Descrivi il problema in dettaglio...",
+        "submitBtn": "Invia ticket",
+        "submitting": "Invio in corso...",
+        "alertFillRequired": "Si prega di compilare tutti i campi obbligatori.",
+        "alertSuccess": "Il tuo ticket è stato inviato! Ti contatteremo presto.",
+        "alertError": "Errore durante l'invio:"
       },
       "common": {
         "addToWishlist": "Aggiungi ai desideri",
@@ -2417,7 +2602,12 @@ const resources = {
         "redeem": "Lös in nyckel",
         "manageKeys": "Nyckelgenerator",
         "manageSessions": "Mina sessioner",
-        "management": "HANTERING"
+        "management": "HANTERING",
+        "applyAsTutor": "Ansök som handledare",
+        "supportTicket": "Supportärende",
+        "mySessions": "Mina sessioner",
+        "applyNow": "Ansök",
+        "reviewApplications": "Granska ansökningar"
       },
       "redeem": {
         "title": "Lös in en produktnyckel",
@@ -2564,7 +2754,10 @@ const resources = {
         "serverErrorDelete": "Serverfel vid radering av kurs",
         "deleteCourse": "Radera kurs",
         "manage": "Hantera",
-        "redeem": "Aktivera kurs"
+        "redeem": "Aktivera kurs",
+        "mySessions": "Mina sessioner",
+        "joinChat": "Gå med i chatten",
+        "noSessions": "Du har inga aktiva sessioner."
       },
       "cartTitle": "Kundvagn",
       "yourCartIsEmpty": "Din kundvagn är tom",
@@ -2657,7 +2850,12 @@ const resources = {
         "alertAddSkill": "Vänligen lägg till minst en färdighet.",
         "alertAgree": "Du måste godkänna villkoren.",
         "alertSuccess": "Ansökan skickades framgångsrikt!",
-        "alertError": "Fel vid sändning av ansökan."
+        "alertError": "Fel vid sändning av ansökan.",
+        "applyFor": "Jag söker som",
+        "roleTeacher": "Lärare / Handledare",
+        "roleCreator": "Kursskapare",
+        "roleTeacherDesc": "Sök för att hålla livesessioner och vägleda studenter.",
+        "roleCreatorDesc": "Sök för att skapa och publicera kurser på plattformen."
       },
       "addCourseForm": {
         "uploadCover": "Ladda upp omslagsbild",
@@ -2806,6 +3004,7 @@ const resources = {
           "schedule": "Schema",
           "groups": "Grupper",
           "members": "Medlemmar",
+          "chat": "Chatt",
           "settings": "Inställningar"
         },
         "progressAnalytics": "Kursframsteg och analys",
@@ -2845,6 +3044,27 @@ const resources = {
         "selectInstructor": "Välj instruktör...",
         "standardSchedule": "Standardschema",
         "placeholderSchedule": "t.ex. Tis, Tor 14:00"
+      },
+      
+      "support": {
+        "desc": "Skicka en supportförfrågan. Vårt team återkommer till dig så snart som möjligt.",
+        "firstName": "Förnamn",
+        "lastName": "Efternamn",
+        "email": "E-post",
+        "priority": "Prioritet",
+        "priorityLow": "Låg",
+        "priorityNormal": "Normal",
+        "priorityHigh": "Hög",
+        "priorityUrgent": "Brådskande",
+        "subject": "Ämne",
+        "subjectPlaceholder": "Beskriv ditt problem kortfattat",
+        "message": "Meddelande",
+        "messagePlaceholder": "Beskriv ditt problem i detalj...",
+        "submitBtn": "Skicka ärende",
+        "submitting": "Skickar...",
+        "alertFillRequired": "Fyll i alla obligatoriska fält.",
+        "alertSuccess": "Ditt ärende har skickats! Vi återkommer snart.",
+        "alertError": "Fel vid sändning:"
       },
       "common": {
         "addToWishlist": "Lägg till i önskelistan",

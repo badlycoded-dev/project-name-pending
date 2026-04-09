@@ -99,10 +99,21 @@ module.exports.getById = async (req, res) => {
         if (!user) return errorHandler(res, 404, 'User not found')
 
         const filtered = linkFilter.filterUserData(user, level)
-        filtered.password = filtered.passwordEnc
-            ? await mdl.parse(filtered.passwordEnc)
-            : '*PROFILE IS OUTDATED — UPDATE PASSWORD IMMEDIATELY*'
-        filtered.password = await utils.createToken(filtered.password, config.JWT_SECRET, { expiresIn: 60 * 5 }, false)
+
+        let plainPassword = null
+        if (filtered.passwordEnc) {
+            try {
+                plainPassword = mdl.parse(filtered.passwordEnc)
+            } catch (e) {
+                // passwordEnc was encrypted with a different SECRET (e.g. after re-deploy)
+                // Don't crash — return a sentinel so the UI knows to prompt a password reset
+                plainPassword = null
+            }
+        }
+
+        filtered.password = plainPassword
+            ? utils.createToken(plainPassword, config.JWT_SECRET, { expiresIn: 60 * 5 }, false)
+            : '*PASSWORD MUST BE RESET — encrypted with a different secret*'
 
         res.status(200).json({ data: filtered })
     } catch (e) {
@@ -145,6 +156,7 @@ module.exports.update = async (req, res) => {
             email:     req.body.email,
             phone:     req.body.phone,
             github:    req.body.github,
+            tutorRank: req.body.tutorRank,
             courses:   req.body.courses,
             updatedAt: Date.now()
         }

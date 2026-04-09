@@ -32,6 +32,9 @@ import Sessions from './pages/Sessions';
 import ManageSession from './pages/ManageSession';
 import StudentDashboard from './pages/StudentDashboard';
 import Grades from './pages/Grades';
+import Chats from './pages/Chats';
+import AdminPanel from './pages/AdminPanel';
+
 import { VideoConference } from './components/VideoConference';
 
 const API = toHttps(process.env.REACT_APP_API_URL || 'http://localhost:4040/api');
@@ -170,7 +173,9 @@ function App() {
 
                 <Route path="/my-courses" element={R(StudentDashboard)} />
                 <Route path="/my-grades"  element={R(Grades)} />
-
+                <Route path="/chats" element={R(Chats)} />
+                <Route path="/admin/panel" element={R(AdminPanel)} />
+                
                 {/* ── Sole meeting entry point ── */}
                 <Route path="/meeting" element={
                     isLoggedIn

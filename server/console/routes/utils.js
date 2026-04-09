@@ -2,7 +2,7 @@ const router  = require('express').Router()
 const passport = require('passport')
 const jwt     = require('jsonwebtoken')
 const os      = require('os')
-const { validate } = require('../utils/utils')
+const { validate, validateDynamic } = require('../utils/utils')
 const utilC   = require('../controllers/utils')
 const { readLogs, getLogFiles } = require('../utils/logger')
 const config  = require('../config/config')
@@ -27,9 +27,9 @@ function verifyTokenParam(raw) {
     try { return jwt.verify(token, config.JWT_SECRET) } catch { return null }
 }
 
-router.get('/status', auth, validate('manage'), utilC.getStatusInfo)
+router.get('/status', auth, validateDynamic('manage'), utilC.getStatusInfo)
 
-router.get('/logs', auth, validate('manage'), (req, res) => {
+router.get('/logs', auth, validateDynamic('manage'), (req, res) => {
     try {
         const { date = 'today', lines } = req.query
         res.json({ date, logs: readLogs(date, lines ? parseInt(lines) : null) })
@@ -38,7 +38,7 @@ router.get('/logs', auth, validate('manage'), (req, res) => {
     }
 })
 
-router.get('/logs/files', auth, validate('manage'), (req, res) => {
+router.get('/logs/files', auth, validateDynamic('manage'), (req, res) => {
     try {
         res.json({ files: getLogFiles() })
     } catch (e) {

@@ -15,7 +15,7 @@ const ALLOWED_TYPES = {
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'application/json', 'text/plain'
     ],
-    videos:   ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-mpeg'],
+    videos:   ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-mpeg', 'video/matroska', 'video/mkv'],
     audio:    ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac',
                'audio/flac', 'audio/x-m4a', 'audio/webm'],
     archives: ['application/zip', 'application/x-zip-compressed',
@@ -25,7 +25,7 @@ const ALLOWED_TYPES = {
 function getFileType(s) {
     s = s.toLowerCase()
     if (['.jpg','.jpeg','.png','.gif','.webp'].some(e => s.endsWith(e)) || s.startsWith('image/'))   return 'image'
-    if (['.mp4','.webm','.mov','.avi'].some(e => s.endsWith(e))         || s.startsWith('video/'))   return 'video'
+    if (['.mp4','.webm','.mov','.avi', '.mkv'].some(e => s.endsWith(e))         || s.startsWith('video/'))   return 'video'
     if (['.mp3','.wav','.aac','.flac','.m4a'].some(e => s.endsWith(e)) || s.startsWith('audio/'))   return 'audio'
     if (['.pdf','.doc','.docx','.xls','.xlsx','.ppt','.pptx','.txt','.json'].some(e => s.endsWith(e))
         || s.startsWith('application/') || s.startsWith('text/'))                                     return 'document'

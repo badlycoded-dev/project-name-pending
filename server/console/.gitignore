@@ -8,6 +8,10 @@
 # testing
 /coverage
 
+controllers/dev
+routes/dev/*
+!routes/dev/index.js
+
 # production
 /build
 

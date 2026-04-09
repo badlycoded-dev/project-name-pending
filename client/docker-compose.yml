@@ -5,10 +5,6 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-      args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:4040/api}
-        REACT_APP_RTC_URL: ${REACT_APP_RTC_URL:-http://localhost:5050}
-        REACT_APP_WEBRTC_URL: ${REACT_APP_WEBRTC_URL:-http://localhost:5001}
     container_name: react_client
     ports:
       - "3000:80"

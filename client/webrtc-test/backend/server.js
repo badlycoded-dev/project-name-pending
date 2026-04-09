@@ -16,9 +16,7 @@ const io = new Server(server, {
   }
 });
 
-// =====================================
-// ОХРАННИК (Middleware) - ПРОВЕРКА ТОКЕНА
-// =====================================
+// проверка токена при подключении сокета
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   
@@ -30,7 +28,6 @@ io.use((socket, next) => {
   console.log(`[ДОСТУП РАЗРЕШЕН] Пользователь с токеном: ${socket.id}`);
   next();
 });
-// =====================================
 
 io.on('connection', (socket) => {
   console.log('⚡ Подключился:', socket.id);

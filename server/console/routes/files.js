@@ -1,7 +1,7 @@
 const router     = require('express').Router()
 const passport   = require('passport')
 const controller = require('../controllers/files')
-const { validate } = require('../utils/utils')
+const { validate, validateDynamic } = require('../utils/utils')
 const { registry } = require('../utils/fileHandler')
 
 const auth = passport.authenticate('jwt', { session: false })
@@ -17,12 +17,12 @@ const attachHandler = (req, _res, next) => {
 
 // User profile pictures
 router.get('/users/:userId/:filename',    controller.getUserProfilePicture)
-router.delete('/users/:userId/:filename', auth, validate('manage'), controller.deleteUserProfilePicture)
+router.delete('/users/:userId/:filename', auth, validateDynamic('manage'), controller.deleteUserProfilePicture)
 router.get('/users/:userId/list',         controller.listUserFiles)
 
 // Course files
 router.get('/courses/:courseId/:filename',    controller.getCourseFile)
-router.delete('/courses/:courseId/:filename', auth, validate('create'), controller.deleteCourseFile)
+router.delete('/courses/:courseId/:filename', auth, validateDynamic('create'), controller.deleteCourseFile)
 router.get('/courses/:courseId/list',         controller.listCourseFiles)
 
 // Form submission files

@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUser, setUser as setUserStorage } from '../../utils/auth';
 import { SettingsContext } from '../../contexts/SettingsContext';
+import { UtilityModal } from '../../components/UtilityModal';
 
 export default function SettingsPage() {
   const { t, theme } = useContext(SettingsContext);
@@ -9,6 +10,8 @@ export default function SettingsPage() {
   const user = getUser();
 
   // Инициализируем стейт полями из схемы mongo.users.js
+  const [savedModal, setSavedModal] = useState(false);
+
   const [formData, setFormData] = useState({
     nickname: user?.name || '',
     email: user?.email || '',
@@ -28,8 +31,7 @@ export default function SettingsPage() {
     // Обновляем данные в localStorage
     const updatedUser = { ...user, ...formData, name: formData.nickname };
     setUserStorage(updatedUser);
-    alert(t('common.profileUpdated'));
-    navigate('/account');
+    setSavedModal(true);
   };
 
   return (

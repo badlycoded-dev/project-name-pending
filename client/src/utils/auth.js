@@ -12,7 +12,7 @@ export function setUser(user, token) {
   const normalized = { ...user, _id: idVal, id: idVal };
   localStorage.setItem('user', JSON.stringify(normalized));
 
-  // Сохраняем токен, если он пришел от сервера Миши
+  // Сохраняем токен, если он пришел от сервера
   if (token) {
     localStorage.setItem('token', token);
   } else if (!localStorage.getItem('token')) {

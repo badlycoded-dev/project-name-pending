@@ -144,6 +144,14 @@ function NavBar() {
                           <i className="bi bi-gear me-3 text-muted fs-5"></i> <span className="fw-medium">{t('settings')}</span>
                         </button>
                       </li>
+                      <li>
+                        <button className="dropdown-item py-2 d-flex align-items-center" onClick={() => { navigate('/apply-teacher'); setShowDropdown(false); }}>
+                          <i className="bi bi-file-earmark-person me-3 text-muted fs-5"></i> <span className="fw-medium">{t('nav.applyNow')}</span>
+                        </button>
+                        <button className="dropdown-item py-2 d-flex align-items-center" onClick={() => { navigate('/account'); setShowDropdown(false); }}>
+                          <i className="bi bi-journal-bookmark me-3 text-muted fs-5"></i> <span className="fw-medium">{t('nav.mySessions')}</span>
+                        </button>
+                      </li>
                       
                       <li><hr className="dropdown-divider my-2" /></li>
                       
@@ -153,23 +161,32 @@ function NavBar() {
                         </button>
                       </li>
 
-                      {['create', 'manage', 'admin', 'root'].includes(u.role) && (
+                      {['tutor', 'create', 'manage', 'quality', 'admin', 'root'].includes(u.role) && (
                         <>
                           <li><hr className="dropdown-divider my-2" /></li>
                           <li className="px-3 pt-2 pb-1">
                             <span className="text-muted small fw-bold text-uppercase" style={{ letterSpacing: '0.5px' }}>{t('nav.management')}</span>
                           </li>
                           
+                          {['create', 'manage', 'admin', 'root'].includes(u.role) && (
+                            <li>
+                              <button className="dropdown-item py-2 d-flex align-items-center" onClick={() => { navigate('/manage/keys'); setShowDropdown(false); }}>
+                                <i className="bi bi-upc-scan me-3 text-muted fs-5"></i> <span className="fw-medium">{t('nav.manageKeys')}</span>
+                              </button>
+                            </li>
+                          )}
                           <li>
-                            <button className="dropdown-item py-2 d-flex align-items-center" onClick={() => { navigate('/manage/keys'); setShowDropdown(false); }}>
-                              <i className="bi bi-upc-scan me-3 text-muted fs-5"></i> <span className="fw-medium">{t('nav.manageKeys')}</span>
-                            </button>
-                          </li>
-                          <li>
-                            <button className="dropdown-item py-2 d-flex align-items-center" onClick={() => { navigate('/account'); setShowDropdown(false); }}>
+                            <button className="dropdown-item py-2 d-flex align-items-center" onClick={() => { navigate('/manage/sessions'); setShowDropdown(false); }}>
                               <i className="bi bi-kanban me-3 text-muted fs-5"></i> <span className="fw-medium">{t('nav.manageSessions')}</span>
                             </button>
                           </li>
+                          {['quality', 'admin', 'root'].includes(u.role) && (
+                            <li>
+                              <button className="dropdown-item py-2 d-flex align-items-center" onClick={() => { navigate('/manage/forms'); setShowDropdown(false); }}>
+                                <i className="bi bi-inbox me-3 text-muted fs-5"></i> <span className="fw-medium">{t('nav.reviewApplications') || 'Review Applications'}</span>
+                              </button>
+                            </li>
+                          )}
                         </>
                       )}
 

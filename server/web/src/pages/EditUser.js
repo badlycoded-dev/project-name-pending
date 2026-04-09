@@ -66,8 +66,12 @@ function EditUser({ data, onLogout }) {
                             tutorRank: user.tutorRank || null,
                             links: user.links || []
                         });
-                        const {_} = await jwtDecode('Bearer '+user.password)
-                        setCurrentPassword(_ || '');
+                        try {
+                            const { _ } = await jwtDecode(user.password)
+                            setCurrentPassword(_ || '')
+                        } catch {
+                            setCurrentPassword('')
+                        }
                     } else {
                         showInfo('Error', 'Failed to fetch user details');
                         navigate('/manage/users');

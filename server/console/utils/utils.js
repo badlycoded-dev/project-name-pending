@@ -152,3 +152,29 @@ module.exports.validate = (permission) => async (req, res, next) => {
         errorHandler(res, 500, err.message);
     }
 };
+
+/**
+ * Dynamic validate middleware — checks DB access_rules override first,
+ * falls back to defaultLevel. Drop-in replacement for validate().
+ */
+module.exports.validateDynamic = (defaultLevel) => async (req, res, next) => {
+    try {
+        const AccessRule = require('../models/mongo.access')
+        const token = req.headers.authorization?.split(' ')[1]
+        if (!token) return errorHandler(res, 401, 'No token provided')
+        const decoded = jwt.verify(token, config.JWT_SECRET)
+        const user = await User.findById(decoded.userId)
+        if (!user) return errorHandler(res, 403, 'User not found')
+        const role = await Role.findById(user.role)
+        const userLevel = role?.accessLevel || 'default'
+
+        // Normalize path: strip ObjectId segments, trailing slash
+        const rawPath = (req.baseUrl + req.path).replace(/\/[a-f0-9]{24}/gi, '/:id').replace(/\/+$/, '') || '/'
+        const routeKey = `${req.method}:${rawPath}`
+        const dbRule = await AccessRule.findOne({ type: 'api', path: routeKey })
+        const required = dbRule ? dbRule.minLevel : defaultLevel
+
+        if (comparePermission(userLevel, required)) return next()
+        errorHandler(res, 403, `ACCESS DENIED: requires '${required}' level`)
+    } catch (err) { errorHandler(res, 500, err.message) }
+}

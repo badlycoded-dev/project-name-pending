@@ -11,6 +11,7 @@ import CartPage from './pages/cart/CartPage';
 import SettingsPage from './pages/settings/SettingsPage';
 import NavBar from './components/NavBar';
 import CoursePage from './pages/course/CoursePage';
+import ViewCourse from './pages/course/ViewCourse';
 import EditCoursePage from './pages/course/EditCoursePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { SettingsProvider } from './contexts/SettingsContext';
@@ -22,6 +23,9 @@ import RedeemPage from './pages/redeem/RedeemPage';
 import CreatorKeysPage from './pages/key_page/CreatorKeysPage';
 import ManageSessionPage from './pages/manage_page/ManageSessionPage';
 import LiveSessionPage from './pages/live_session/LiveSessionPage';
+import FormsPage from './pages/forms/FormsPage';
+import SessionsPage from './pages/sessions/SessionsPage';
+import StudentSessionPage from './pages/student_session/StudentSessionPage';
 
 function App() {
   return (
@@ -41,38 +45,65 @@ function App() {
               <Route path="/cart" element={<CartPage />} />
               <Route path="/wishlist" element={<WishlistPage />} />
               <Route path="/apply-teacher" element={<TeacherRegisterPage />} />
-              <Route 
-                path="/add-course" 
+              <Route
+                path="/add-course"
                 element={
                   <ProtectedRoute allowedRoles={['create', 'manage', 'admin', 'root']}>
                     <AddCoursePage />
                   </ProtectedRoute>
-                } 
+                }
               />
               <Route path="/course/:id" element={<CoursePage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-              <Route 
-                path="/instructor/edit-course/:id" 
+              <Route path="/view-course/:id" element={<ViewCourse />} />
+              <Route
+                path="/instructor/edit-course/:id"
                 element={
                   <ProtectedRoute roleRequired="teacher">
                     <EditCoursePage />
                   </ProtectedRoute>
-                } 
+                }
               />
               <Route path="/redeem" element={<RedeemPage />} />
-              <Route path="/manage/keys" element={
-                <ProtectedRoute allowedRoles={['create', 'manage', 'admin', 'root']}>
-                  <CreatorKeysPage />
-                </ProtectedRoute>
-                } 
+              <Route
+                path="/manage/keys"
+                element={
+                  <ProtectedRoute allowedRoles={['create', 'manage', 'admin', 'root']}>
+                    <CreatorKeysPage />
+                  </ProtectedRoute>
+                }
               />
-              <Route path="/manage/session/:id" element={
-                <ProtectedRoute allowedRoles={['create', 'manage', 'admin', 'root']}>
-                  <ManageSessionPage />
-                </ProtectedRoute>
-                } 
+              <Route
+                path="/manage/session/:id"
+                element={
+                  <ProtectedRoute allowedRoles={['create', 'manage', 'admin', 'root']}>
+                    <ManageSessionPage />
+                  </ProtectedRoute>
+                }
               />
               <Route path="/live/:id" element={<LiveSessionPage />} />
+              <Route path="/session/:id" element={<StudentSessionPage />} />
+
+              {/* ── Страница сессий ── */}
+              <Route
+                path="/manage/sessions"
+                element={
+                  <ProtectedRoute allowedRoles={['tutor', 'create', 'manage', 'quality', 'admin', 'root']}>
+                    <SessionsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* ── Страница заявок (quality+) ── */}
+              <Route
+                path="/manage/forms"
+                element={
+                  <ProtectedRoute allowedRoles={['quality', 'admin', 'root', 'manage']}>
+                    <FormsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
         </WishlistProvider>

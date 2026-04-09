@@ -1,38 +1,40 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# ROOT DOCKER COMPOSE — Full stack deployment entrypoint
+# ROOT DOCKER COMPOSE — Server stack + Client stack, two separate projects
+#                       communicating over one shared bridge network.
 #
 # Usage:
-#   Local / VPN testing:
-#     SERVER_HOST=26.64.216.17 docker-compose up -d --build
-#
-#   Production (with domain + HTTPS):
-#     SERVER_HOST=your-domain.com USE_HTTPS=true docker-compose up -d --build
-#
-# Or put values in .env at this root level:
-#   SERVER_HOST=26.64.216.17
-#   USE_HTTPS=false
+#   cp .env.example .env      # fill in SERVER_HOST and DB credentials
+#   docker-compose up -d --build
 #
 # Ports exposed (HTTP mode):
-#   http://<SERVER_HOST>:4000  — Admin / teacher web panel  (server/web)
 #   http://<SERVER_HOST>:3000  — Student client app         (client)
+#   http://<SERVER_HOST>:4000  — Admin / teacher web panel  (server/web)
 #   http://<SERVER_HOST>:4040  — REST API
 #   http://<SERVER_HOST>:5050  — RTC signaling
+#
+# Each stack can still be run independently from its own folder:
+#   cd server && docker-compose -f docker-compose.local.yml up -d --build
+#   cd client && docker-compose -f docker-compose.local.yml up -d --build
 # ═══════════════════════════════════════════════════════════════════════════════
 
 services:
 
-  # ── CONSOLE REST API ─────────────────────────────────────────────────────────
-  app:
+  # ╔══════════════════════════════════════════════════════════════════════════╗
+  # ║  SERVER STACK                                                            ║
+  # ╚══════════════════════════════════════════════════════════════════════════╝
+
+  # ── REST API ──────────────────────────────────────────────────────────────
+  api:
     build:
       context: ./server/console
       dockerfile: Dockerfile
     container_name: console_app
     restart: unless-stopped
     env_file:
-      - ./server/.env
+      - .env
     environment:
-      SERVER_HOST: ${SERVER_HOST:-localhost}
-      USE_HTTPS: ${USE_HTTPS:-false}
+      SERVER_HOST: ${SERVER_HOST}
+      USE_HTTPS: ${USE_HTTPS}
       API_PORT_HTTP: ${API_PORT_HTTP:-4040}
       API_PORT_HTTPS: ${API_PORT_HTTPS:-4043}
       WEB_PORT_HTTP: ${WEB_PORT_HTTP:-4000}
@@ -46,10 +48,17 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       SECRET: ${SECRET}
       NODE_TLS_REJECT_UNAUTHORIZED: "0"
+      NODE_ENV: ${NODE_ENV:-development}
     volumes:
       - app_storage:/app/storage
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4040/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   nginx-api:
     build:
@@ -61,11 +70,11 @@ services:
       - "${API_PORT_HTTP:-4040}:80"
       - "${API_PORT_HTTPS:-4043}:443"
     depends_on:
-      - app
+      - api
     networks:
       - app-network
 
-  # ── RTC SIGNALING SERVER ──────────────────────────────────────────────────────
+  # ── RTC SIGNALING ─────────────────────────────────────────────────────────
   rtc:
     build:
       context: ./server/rtc
@@ -73,10 +82,10 @@ services:
     container_name: rtc-server
     restart: unless-stopped
     env_file:
-      - ./server/.env
+      - .env
     environment:
-      SERVER_HOST: ${SERVER_HOST:-localhost}
-      USE_HTTPS: ${USE_HTTPS:-false}
+      SERVER_HOST: ${SERVER_HOST}
+      USE_HTTPS: ${USE_HTTPS}
       API_PORT_HTTP: ${API_PORT_HTTP:-4040}
       API_PORT_HTTPS: ${API_PORT_HTTPS:-4043}
       RTC_PORT_HTTP: ${RTC_PORT_HTTP:-5050}
@@ -90,11 +99,18 @@ services:
       TURN_USERNAME: ${TURN_USERNAME:-rtcuser}
       TURN_CREDENTIAL: ${TURN_CREDENTIAL:-changeme}
       NODE_TLS_REJECT_UNAUTHORIZED: "0"
+      NODE_ENV: ${NODE_ENV:-development}
     depends_on:
       - coturn
     networks:
       - app-network
       - rtc-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   nginx-rtc:
     build:
@@ -111,7 +127,7 @@ services:
       - app-network
       - rtc-net
 
-  # ── COTURN STUN/TURN ──────────────────────────────────────────────────────────
+  # ── COTURN STUN/TURN ──────────────────────────────────────────────────────
   coturn:
     image: coturn/coturn:latest
     container_name: coturn
@@ -126,53 +142,73 @@ services:
     networks:
       - rtc-net
 
-  # ── ADMIN / TEACHER WEB PANEL (server/web) ────────────────────────────────────
+  # ── ADMIN / TEACHER WEB PANEL ─────────────────────────────────────────────
   web:
     build:
       context: ./server/web
       dockerfile: Dockerfile
       args:
         REACT_APP_EMAILJS_PUBLIC_KEY: ${REACT_APP_EMAILJS_PUBLIC_KEY}
-        REACT_APP_USE_HTTPS: ${USE_HTTPS:-false}
-        REACT_APP_API_URL: http://${SERVER_HOST:-localhost}:${API_PORT_HTTP:-4040}/api
-        REACT_APP_RTC_URL: http://${SERVER_HOST:-localhost}:${RTC_PORT_HTTP:-5050}
+        REACT_APP_USE_HTTPS: ${USE_HTTPS}
+        REACT_APP_API_URL: http://${SERVER_HOST}:${API_PORT_HTTP:-4040}/api
+        REACT_APP_RTC_URL: http://${SERVER_HOST}:${RTC_PORT_HTTP:-5050}
+        REACT_APP_API_URL_S: https://${SERVER_HOST}:${API_PORT_HTTPS:-4043}/api
+        REACT_APP_RTC_URL_S: https://${SERVER_HOST}:${RTC_PORT_HTTPS:-5051}
     container_name: web-frontend
     restart: unless-stopped
     ports:
       - "${WEB_PORT_HTTP:-4000}:80"
       - "${WEB_PORT_HTTPS:-4004}:443"
     environment:
-      REACT_APP_USE_HTTPS: ${USE_HTTPS:-false}
-      REACT_APP_API_URL: http://${SERVER_HOST:-localhost}:${API_PORT_HTTP:-4040}/api
-      REACT_APP_RTC_URL: http://${SERVER_HOST:-localhost}:${RTC_PORT_HTTP:-5050}
-      REACT_APP_SERVER_HOST: ${SERVER_HOST:-localhost}
+      REACT_APP_USE_HTTPS: ${USE_HTTPS}
+      REACT_APP_API_URL: http://${SERVER_HOST}:${API_PORT_HTTP:-4040}/api
+      REACT_APP_RTC_URL: http://${SERVER_HOST}:${RTC_PORT_HTTP:-5050}
+      REACT_APP_API_URL_S: https://${SERVER_HOST}:${API_PORT_HTTPS:-4043}/api
+      REACT_APP_RTC_URL_S: https://${SERVER_HOST}:${RTC_PORT_HTTPS:-5051}
+      REACT_APP_SERVER_HOST: ${SERVER_HOST}
       REACT_APP_EMAILJS_PUBLIC_KEY: ${REACT_APP_EMAILJS_PUBLIC_KEY}
     networks:
       - app-network
     depends_on:
-      - app
+      - api
       - rtc
 
-  # ── STUDENT CLIENT APP (client/) ─────────────────────────────────────────────
+  # ╔══════════════════════════════════════════════════════════════════════════╗
+  # ║  CLIENT STACK                                                            ║
+  # ╚══════════════════════════════════════════════════════════════════════════╝
+
+  # ── STUDENT CLIENT APP ────────────────────────────────────════════════════
   client:
     build:
       context: ./client
       dockerfile: Dockerfile
       args:
-        REACT_APP_API_URL: http://${SERVER_HOST:-localhost}:${API_PORT_HTTP:-4040}/api
-        REACT_APP_RTC_URL: http://${SERVER_HOST:-localhost}:${RTC_PORT_HTTP:-5050}
-        REACT_APP_WEBRTC_URL: http://${SERVER_HOST:-localhost}:5001
+        REACT_APP_USE_HTTPS: ${USE_HTTPS}
+        REACT_APP_API_URL: http://${SERVER_HOST}:${API_PORT_HTTP:-4040}/api
+        REACT_APP_RTC_URL: http://${SERVER_HOST}:${RTC_PORT_HTTP:-5050}
+        REACT_APP_API_URL_S: https://${SERVER_HOST}:${API_PORT_HTTPS:-4043}/api
+        REACT_APP_RTC_URL_S: https://${SERVER_HOST}:${RTC_PORT_HTTPS:-5051}
+        REACT_APP_SERVER_HOST: ${SERVER_HOST}
     container_name: react_client
     restart: unless-stopped
     ports:
       - "3000:80"
+      - "3003:443"
+    environment:
+      REACT_APP_USE_HTTPS: ${USE_HTTPS}
+      REACT_APP_API_URL: http://${SERVER_HOST}:${API_PORT_HTTP:-4040}/api
+      REACT_APP_RTC_URL: http://${SERVER_HOST}:${RTC_PORT_HTTP:-5050}
+      REACT_APP_API_URL_S: https://${SERVER_HOST}:${API_PORT_HTTPS:-4043}/api
+      REACT_APP_RTC_URL_S: https://${SERVER_HOST}:${RTC_PORT_HTTPS:-5051}
+      REACT_APP_SERVER_HOST: ${SERVER_HOST}
+      REACT_APP_EMAILJS_PUBLIC_KEY: ${REACT_APP_EMAILJS_PUBLIC_KEY}
     networks:
       - app-network
     depends_on:
-      - app
+      - api
       - rtc
 
-  # ── WEBRTC TEST BACKEND (client/webrtc-test) ──────────────────────────────────
+  # ── WEBRTC TEST BACKEND ───────────────────────────────────────────────────
   webrtc:
     build:
       context: ./client/webrtc-test/backend

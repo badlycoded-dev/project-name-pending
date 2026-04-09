@@ -366,6 +366,41 @@ module.exports.getExpandedSchedule = async (req, res) => {
         res.status(200).json({ data: expanded })
     } catch (e) { errorHandler(res, 500, e) }
 }
+
+module.exports.reassignHost = async (req, res) => {
+    try {
+        const requester = await getRequester(req)
+        if (!requester) return errorHandler(res, 401, 'Authentication required')
+
+        const level = await getAccessLevel(requester)
+        if (!MANAGE_LEVELS.includes(level))
+            return errorHandler(res, 403, 'Only manage/admin/root can reassign session host')
+
+        const session = await Sessions.findById(req.params.id)
+        if (!session) return errorHandler(res, 404, 'Session not found')
+
+        const { newHostId } = req.body
+        if (!newHostId) return errorHandler(res, 400, 'newHostId is required')
+
+        const Users = require('../models/mongo.users')
+        const newHost = await Users.findById(newHostId)
+        if (!newHost) return errorHandler(res, 404, 'New host user not found')
+
+        const newHostLevel = await getAccessLevel(newHost)
+        if (!['tutor', 'manage', 'admin', 'root'].includes(newHostLevel))
+            return errorHandler(res, 400, 'New host must have at least tutor access level')
+
+        const updated = await Sessions.findByIdAndUpdate(
+            req.params.id,
+            { $set: { hostTutor: newHostId, updatedAt: new Date() } },
+            { new: true }
+        ).populate('hostTutor', 'nickname email tutorRank')
+            .populate('courseId', 'trans base_lang level direction courseType')
+
+        res.status(200).json({ message: 'Session host reassigned', data: updated })
+    } catch (e) { errorHandler(res, 500, e) }
+}
+
 module.exports.prune = async (req, res) => {
     try {
         const requester = await getRequester(req)

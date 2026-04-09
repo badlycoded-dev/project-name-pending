@@ -20,9 +20,10 @@ const NAV = [
         section: 'Learning',
         minLvl: 0,
         items: [
-        { to: '/my-courses',  icon: 'bi-collection-play',   label: 'My Courses' },
-        { to: '/my-grades',   icon: 'bi-award',              label: 'My Grades' },
-        { to: '/redeem',      icon: 'bi-key',                label: 'Redeem Key' },
+            { to: '/my-courses',  icon: 'bi-collection-play',   label: 'My Courses' },
+            { to: '/my-grades',   icon: 'bi-award',              label: 'My Grades' },
+            { to: '/chats', icon: 'bi-chat-dots-fill', label: 'Messages' },
+            { to: '/redeem',      icon: 'bi-key',                label: 'Redeem Key' },
         ],
     },
     {
@@ -58,6 +59,7 @@ const NAV = [
         section: 'System', minLvl: 4,
         items: [
             { to: '/manage/settings', icon: 'bi-gear', label: 'Settings & Logs' },
+            { to: '/admin/panel',     icon: 'bi-database-gear', label: 'Admin Panel' },
         ],
     },
 ];
@@ -120,7 +122,7 @@ function Sidebar({ data, onLogout, mobileOpen, onClose, collapsed, onCollapseCli
                     {!collapsed && (
                         <div className="sidebar-user-info">
                             <div className="sidebar-user-name">{data?.nickname || data?.email || 'User'}</div>
-                            <div className="sidebar-user-role" style={{ color:roleColor }}>{data?.accessLevel}{data?.tutorRank?` · ${data.tutorRank}`:''}</div>
+                            <div className="sidebar-user-role" style={{ color:roleColor }}>{data?.accessLevel}</div>
                         </div>
                     )}
                 </div>
