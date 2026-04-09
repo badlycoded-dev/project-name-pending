@@ -181,14 +181,8 @@ docker-compose logs rtc | tail -50
 
 ---
 
----
-
 <div align="center">
 
 `Made as test of skills at request for ITSTEP`
 
 </div>
-
-**Built with ❤️ for learning**
-
-Happy coding! 🚀
